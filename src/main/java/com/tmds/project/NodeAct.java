@@ -26,7 +26,10 @@ public class NodeAct extends AbstractActor {
 
     public NodeAct(int node_id) {
         this.node_id = node_id;
+
         this.request_q = new LinkedList<ActorRef>();
+        this.using = false;
+        this.asked = false;
     }
 
 
