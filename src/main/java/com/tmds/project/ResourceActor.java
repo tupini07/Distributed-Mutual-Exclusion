@@ -6,15 +6,15 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
 //#printer-messages
-public class ResourceNode extends AbstractActor {
+public class ResourceActor extends AbstractActor {
 
-  public ResourceNode(LoggingAdapter log) {
+  public ResourceActor(LoggingAdapter log) {
     this.log = log;
   }
 
   //#printer-messages
   static public Props props() {
-    return Props.create(ResourceNode.class, () -> new ResourceNode());
+    return Props.create(ResourceActor.class, () -> new ResourceActor());
   }
 
   //#printer-messages
@@ -29,7 +29,7 @@ public class ResourceNode extends AbstractActor {
 
   private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-  public ResourceNode() {
+  public ResourceActor() {
   }
 
 
