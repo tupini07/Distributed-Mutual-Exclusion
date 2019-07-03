@@ -80,6 +80,11 @@ public class AkkaStartSystem {
                     n4
             ))), ActorRef.noSender());
 
+
+            // Ensure that the tree has been built correctly
+            Thread.sleep(2000);
+
+
             // -----------------------------------------------------
             // choose a random node as the initial possessor of the token
             n4.tell(new NodeAct.Initialize(true), ActorRef.noSender());
@@ -87,6 +92,8 @@ public class AkkaStartSystem {
             System.out.println(">>> Press ENTER to exit <<<");
             System.in.read();
         } catch (IOException ioe) {
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } finally {
             system.terminate();
         }
