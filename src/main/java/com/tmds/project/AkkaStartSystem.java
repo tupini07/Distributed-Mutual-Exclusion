@@ -12,6 +12,7 @@ public class AkkaStartSystem {
         final ActorSystem system = ActorSystem.create("DMX");
 
         try {
+            // NOTE: Topology comes from Figure 7 of K. Raymond paper
             final ActorRef n1 = system.actorOf(NodeAct.props(1), "node_1");
             final ActorRef n2 = system.actorOf(NodeAct.props(2), "node_2");
             final ActorRef n3 = system.actorOf(NodeAct.props(3), "node_3");
@@ -20,8 +21,8 @@ public class AkkaStartSystem {
             final ActorRef n6 = system.actorOf(NodeAct.props(6), "node_6");
             final ActorRef n7 = system.actorOf(NodeAct.props(7), "node_7");
             final ActorRef n8 = system.actorOf(NodeAct.props(8), "node_8");
-//            final ActorRef n9 = system.actorOf(NodeAct.props(9), "node_9");
-//            final ActorRef n10 = system.actorOf(NodeAct.props(10), "node_10");
+            final ActorRef n9 = system.actorOf(NodeAct.props(9), "node_9");
+            final ActorRef n10 = system.actorOf(NodeAct.props(10), "node_10");
 //            final ActorRef n11 = system.actorOf(NodeAct.props(11), "node_11");
 //            final ActorRef n12 = system.actorOf(NodeAct.props(12), "node_12");
 //            final ActorRef n13 = system.actorOf(NodeAct.props(13), "node_13");
@@ -32,45 +33,54 @@ public class AkkaStartSystem {
 //            final ActorRef n18 = system.actorOf(NodeAct.props(18), "node_18");
 
             n1.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n2
+                    n2, n3, n4
             ))), ActorRef.noSender());
 
 
             n2.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n1, n3
+                    n5, n6, n1
             ))), ActorRef.noSender());
 
 
             n3.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n2
+                    n1, n7, n8
             ))), ActorRef.noSender());
 
 
             n4.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n2, n6
+                    n1, n9, n10
             ))), ActorRef.noSender());
 
 
             n5.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n6
+                    n2
             ))), ActorRef.noSender());
 
 
             n6.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n4, n7, n5, n8
+                    n2
             ))), ActorRef.noSender());
 
 
             n7.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n6
+                    n3
             ))), ActorRef.noSender());
 
 
             n8.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
-                    n6
+                    n3
             ))), ActorRef.noSender());
 
 
+            n9.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
+                    n4
+            ))), ActorRef.noSender());
+
+            n10.tell(new NodeAct.SetNeighbors(new HashSet<ActorRef>(Arrays.asList(
+                    n4
+            ))), ActorRef.noSender());
+
+            // -----------------------------------------------------
             // choose a random node as the initial possessor of the token
             n4.tell(new NodeAct.Initialize(true), ActorRef.noSender());
 
