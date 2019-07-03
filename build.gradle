@@ -14,7 +14,7 @@ dependencies {
   testCompile 'junit:junit:4.12'
 }
 
-mainClassName = "com.tmds.project.AkkaQuickstart"
+mainClassName = "com.tmds.project.AkkaStartSystem"
 
 run {
   standardInput = System.in
