@@ -55,14 +55,28 @@ public class NodeAct extends AbstractActor {
         }
     }
 
+    static public class RequestToken {
+    }
+
+    static public class SendToken {
+    }
+
+    static public class EnterCriticalSection {
+    }
+
+    static public class ExitCriticalSection {
+    }
+
+    static public class Restart {
+    }
+
+    static public class Advise {
+    }
+
+
     // ----------------------------------------------------
 
     // implementation of handling for messages
-    private void setNeighbors(SetNeighbors msg) {
-        log.info("Setting neighbors. Size: {}", msg.neighbors.size());
-        this.neighbors = msg.neighbors;
-    }
-
     private void handleInitialize(Initialize msg) {
         if (this.holder != null) {
             // if this node has already recieved the initialize message then don't
@@ -83,13 +97,47 @@ public class NodeAct extends AbstractActor {
         }
     }
 
+    private void setNeighbors(SetNeighbors msg) {
+        log.info("Setting neighbors. Size: {}", msg.neighbors.size());
+        this.neighbors = msg.neighbors;
+    }
+
+    private void handleTokenRequest(RequestToken msg) {
+    }
+
+    private void handleTokenReceive(SendToken msg) {
+    }
+
+    private void handleEnterCS(EnterCriticalSection msg) {
+    }
+
+    private void handleExitCS(ExitCriticalSection msg) {
+    }
+
+    private void handleRestart(Restart msg) {
+    }
+
+    private void handleAdvise(Advise msg) {
+    }
+
+
     // ----------------------------------------------------
     // mapping between message classes and methods for handling
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(Initialize.class, this::handleInitialize)
                 .match(SetNeighbors.class, this::setNeighbors)
+
+                .match(Initialize.class, this::handleInitialize)
+
+                .match(RequestToken.class, this::handleTokenRequest)
+                .match(SendToken.class, this::handleTokenReceive)
+
+                .match(EnterCriticalSection.class, this::handleEnterCS)
+                .match(ExitCriticalSection.class, this::handleExitCS)
+
+                .match(Restart.class, this::handleRestart)
+                .match(Advise.class, this::handleAdvise)
                 .build();
     }
 }
