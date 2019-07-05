@@ -180,11 +180,17 @@ public class NodeAct extends AbstractActor {
         }
 
         // if we have the token and we're not using it then send it over
-        if (this.holder == getSelf() && !this.using) {
+        if (this.holder.equals(getSelf()) && !this.using) {
             getSelf().tell(new InvokePriviledgeSend(), getSelf());
         }
 
-        // if we have the token, we are the ones requesting it, and
+        // if we have the token, we are the ones requesting it, and we're at the top of the
+        // request_q then we can go ahead and use it
+        if (this.holder.equals(getSelf())
+                && requester.equals(getSelf())
+                && this.request_q.getFirst().equals(getSelf())) {
+            handleTokenReceive(new SendToken());
+        }
     }
 
     /**
@@ -197,7 +203,7 @@ public class NodeAct extends AbstractActor {
         this.holder = getSelf(); // since we now own the token
 
         // if current actor needs it then use it. Else send it over
-        if (this.request_q.getFirst() == getSelf()) {
+        if (this.request_q.getFirst().equals(getSelf())) {
             this.request_q.pop();
             this.using = true;
 
@@ -216,10 +222,10 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void sendPriviledge(InvokePriviledgeSend msg) {
-        if (this.holder == getSelf()
+        if (this.holder.equals(getSelf())
                 && !this.using
                 && !this.request_q.isEmpty()
-                && !(this.request_q.getFirst() == getSelf())) {
+                && !(this.request_q.getFirst().equals(getSelf()))) {
 
             // set new holder
             this.holder = this.request_q.pop();
@@ -229,20 +235,14 @@ public class NodeAct extends AbstractActor {
             this.holder.tell(new SendToken(), getSelf());
 
         }
-// this else is not really needed. It will print error messages even in case that there are no
-// entries in request_q, which is not really an error. It might be useful for debugging though.
-//
-//        else {
-//            log.error("Tried to send privilege but one of the conditions was violated\n" +
-//                            "Is current actor holder: {}\n" +
-//                            "Is current actor using: {}\n" +
-//                            "Is current actor's request_q empty: {}\n" +
-//                            "Is current actor at the head of its request_q: {}",
-//                    this.holder == getSelf()
-//                    , this.using
-//                    , this.request_q.isEmpty()
-//                    , (this.request_q.getFirst() == getSelf()));
-//        }
+
+        // If after sending the token we still have other requesters in our request_q
+        // then we also send a RequestToken message to the new holder so that we will
+        // get back the token eventually
+        if (!this.request_q.isEmpty()) {
+            this.holder.tell(new RequestToken(), getSelf());
+        }
+
     }
 
     /**
