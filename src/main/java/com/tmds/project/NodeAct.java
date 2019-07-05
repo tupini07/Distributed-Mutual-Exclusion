@@ -199,7 +199,7 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void handleTokenReceive(SendToken msg) {
-        log.info("Received the token");
+        log.info("Received the token from node {}", getSender().path().name());
         this.holder = getSelf(); // since we now own the token
 
         // if current actor needs it then use it. Else send it over
@@ -239,7 +239,7 @@ public class NodeAct extends AbstractActor {
         // If after sending the token we still have other requesters in our request_q
         // then we also send a RequestToken message to the new holder so that we will
         // get back the token eventually
-        if (!this.request_q.isEmpty()) {
+        if (!this.request_q.isEmpty() && !this.asked) {
             this.holder.tell(new RequestToken(), getSelf());
         }
 
