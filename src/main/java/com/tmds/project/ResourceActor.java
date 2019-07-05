@@ -6,6 +6,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -13,14 +14,12 @@ public class ResourceActor extends AbstractActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-    private String name;
 
-    public ResourceActor(String name) {
-        this.name = name;
+    public ResourceActor() {
     }
 
-    static public Props props(String name) {
-        return Props.create(ResourceActor.class, () -> new ResourceActor(name));
+    static public Props props() {
+        return Props.create(ResourceActor.class, () -> new ResourceActor());
     }
 
     // ----------------------------------------------------
@@ -31,7 +30,6 @@ public class ResourceActor extends AbstractActor {
      * resource. The sending of this message implies that the sender holds the token and is using it.
      */
     static public class AccessResource {
-        // message should include actor ID
     }
 
     // ----------------------------------------------------
@@ -40,6 +38,16 @@ public class ResourceActor extends AbstractActor {
     private void handleResourceAccess(AccessResource msg) {
         // this should potentially print something stating that the
         // resource is being accessed, and the id of the actor accessing it
+        ActorRef resource_user = getSender();
+        log.info("Node '' is currently accessing the resource", resource_user.path().name());
+
+        getContext().getSystem().scheduler().scheduleOnce(
+                Duration.ofMillis(5000),
+                resource_user,
+                new NodeAct.ExitCriticalSection(),
+                getContext().getSystem().dispatcher(),
+                getSelf());
+
     }
 
     // ----------------------------------------------------

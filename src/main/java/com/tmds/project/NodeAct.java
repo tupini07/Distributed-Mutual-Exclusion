@@ -16,6 +16,7 @@ public class NodeAct extends AbstractActor {
     // Private variables that identify this node
     private final int node_id; // for debugging
     private HashSet<ActorRef> neighbors;
+    private final ActorRef resource_actor;
 
     // Variables used to implement the algorithm
     private ActorRef holder; // reference to self or to one of the neighbors
@@ -24,8 +25,9 @@ public class NodeAct extends AbstractActor {
     private boolean asked; // whether this node has asked a neighbor for the node
 
 
-    public NodeAct(int node_id) {
+    public NodeAct(int node_id, ActorRef resource_actor) {
         this.node_id = node_id;
+        this.resource_actor = resource_actor;
 
         this.request_q = new LinkedList<ActorRef>();
         this.using = false;
@@ -33,8 +35,8 @@ public class NodeAct extends AbstractActor {
     }
 
 
-    static public Props props(int node_id) {
-        return Props.create(NodeAct.class, () -> new NodeAct(node_id));
+    static public Props props(int node_id, ActorRef resource_actor) {
+        return Props.create(NodeAct.class, () -> new NodeAct(node_id, resource_actor));
     }
 
     // ----------------------------------------------------
@@ -161,6 +163,7 @@ public class NodeAct extends AbstractActor {
      */
     private void handleTokenRequest(RequestToken msg) {
         ActorRef requester = getSender();
+        log.info("Received token request from node {}", requester.path().name());
 
         if (!this.request_q.contains(requester)) {
             this.request_q.add(requester);
@@ -193,6 +196,7 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void handleTokenReceive(SendToken msg) {
+        log.info("Received the token");
         this.holder = getSelf(); // since we now own the token
 
         // if current actor needs it then use it. Else send it over
@@ -243,16 +247,15 @@ public class NodeAct extends AbstractActor {
     private void handleEnterCS(EnterCriticalSection msg) {
         this.using = true;
 
-        // here we access the resource.
-        // maybe we could use something like https://doc.akka.io/docs/akka/current/futures.html
+        log.info("About to enter critical section");
 
-        // send a message to the resource that symbolized that we're accessing it,
-        // wait for the resource's response and once we get it then we can (exit CS) do:
-        getSelf().tell(new ExitCriticalSection(), getSelf());
+        resource_actor.tell(new ResourceActor.AccessResource(), getSelf());
     }
 
     private void handleExitCS(ExitCriticalSection msg) {
         this.using = false;
+        log.info("Just exited critical section");
+
         getSelf().tell(new InvokePriviledgeSend(), getSelf());
     }
 
