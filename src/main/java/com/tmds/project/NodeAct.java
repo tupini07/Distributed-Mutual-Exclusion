@@ -178,6 +178,11 @@ public class NodeAct extends AbstractActor {
             this.holder.tell(new RequestToken(), getSelf());
 
         }
+
+        // if we have the token and we're not using it then send it over
+        if (this.holder == getSelf() && !this.using) {
+            getSelf().tell(new InvokePriviledgeSend(), getSelf());
+        }
     }
 
     /**
@@ -209,6 +214,7 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void sendPriviledge(InvokePriviledgeSend msg) {
+        int a = 1;
         if (this.holder == getSelf()
                 && !this.using
                 && !this.request_q.isEmpty()

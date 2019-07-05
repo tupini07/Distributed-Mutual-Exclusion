@@ -39,7 +39,7 @@ public class ResourceActor extends AbstractActor {
         // this should potentially print something stating that the
         // resource is being accessed, and the id of the actor accessing it
         ActorRef resource_user = getSender();
-        log.info("Node '' is currently accessing the resource", resource_user.path().name());
+        log.info("Node '{}' is currently accessing the resource", resource_user.path().name());
 
         getContext().getSystem().scheduler().scheduleOnce(
                 Duration.ofMillis(5000),
