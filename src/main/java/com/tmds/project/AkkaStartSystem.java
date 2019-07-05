@@ -99,7 +99,16 @@ public class AkkaStartSystem {
             // -----------------------------------------------------
             // Enter Critical Section
 
+            n1.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n2.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n3.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n4.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n5.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n6.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
             n7.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n8.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n9.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+            n10.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
 
 
             // -----------------------------------------------------

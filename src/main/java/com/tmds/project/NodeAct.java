@@ -183,6 +183,8 @@ public class NodeAct extends AbstractActor {
         if (this.holder == getSelf() && !this.using) {
             getSelf().tell(new InvokePriviledgeSend(), getSelf());
         }
+
+        // if we have the token, we are the ones requesting it, and
     }
 
     /**
@@ -214,7 +216,6 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void sendPriviledge(InvokePriviledgeSend msg) {
-        int a = 1;
         if (this.holder == getSelf()
                 && !this.using
                 && !this.request_q.isEmpty()
@@ -273,6 +274,7 @@ public class NodeAct extends AbstractActor {
     }
 
     private void uenterCS(UEnterCS msg) {
+        log.info("User requested this node to enter the critical section");
         getSelf().tell(new RequestToken(), getSelf());
     }
 
