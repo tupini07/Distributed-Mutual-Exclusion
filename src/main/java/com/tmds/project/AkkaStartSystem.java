@@ -92,6 +92,14 @@ public class AkkaStartSystem {
             // choose a random node as the initial possessor of the token
             n4.tell(new NodeAct.Initialize(true), ActorRef.noSender());
 
+            // Ensure nodes have been initialized correctly
+            Thread.sleep(2000);
+
+            // -----------------------------------------------------
+            // Enter Critical Section
+
+            n7.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+
             System.out.println(">>> Press ENTER to exit <<<");
             System.in.read();
         } catch (IOException ioe) {
@@ -101,40 +109,5 @@ public class AkkaStartSystem {
             system.terminate();
         }
 
-        // ------
-        // below is the old try for stating the "quickstart" system
-
-//    try {
-//      //#create-actors
-//      final ActorRef printerActor =
-//        system.actorOf(Printer.props(), "printerActor");
-//      final ActorRef howdyGreeter =
-//        system.actorOf(Greeter.props("Howdy", printerActor), "howdyGreeter");
-//      final ActorRef helloGreeter =
-//        system.actorOf(Greeter.props("Hello", printerActor), "helloGreeter");
-//      final ActorRef goodDayGreeter =
-//        system.actorOf(Greeter.props("Good day", printerActor), "goodDayGreeter");
-//      //#create-actors
-//
-//      //#main-send-messages
-//      howdyGreeter.tell(new Greeter.WhoToGreet("Akka"), ActorRef.noSender());
-//      howdyGreeter.tell(new Greeter.Greet(), ActorRef.noSender());
-//
-//      howdyGreeter.tell(new Greeter.WhoToGreet("Lightbend"), ActorRef.noSender());
-//      howdyGreeter.tell(new Greeter.Greet(), ActorRef.noSender());
-//
-//      helloGreeter.tell(new Greeter.WhoToGreet("Java"), ActorRef.noSender());
-//      helloGreeter.tell(new Greeter.Greet(), ActorRef.noSender());
-//
-//      goodDayGreeter.tell(new Greeter.WhoToGreet("Play"), ActorRef.noSender());
-//      goodDayGreeter.tell(new Greeter.Greet(), ActorRef.noSender());
-//      //#main-send-messages
-//
-//      System.out.println(">>> Press ENTER to exit <<<");
-//      System.in.read();
-//    } catch (IOException ioe) {
-//    } finally {
-//      system.terminate();
-//    }
     }
 }

@@ -95,8 +95,8 @@ public class NodeAct extends AbstractActor {
     }
 
     /**
-     * Message that an actor sends to itself after it exits the critical section
-     * This means that the agent is no longer using the token
+     * Message that the resource actor sends to the actor currently in the critical section, once the execution has
+     * finished. This message can contain the result obtained after executing the CS (if any)
      */
     static public class ExitCriticalSection {
     }
@@ -139,9 +139,9 @@ public class NodeAct extends AbstractActor {
         log.info("Initializing node: {}", this.node_id);
 
         if (msg.is_first) {
-            this.holder = getSender();
-        } else {
             this.holder = getSelf();
+        } else {
+            this.holder = getSender();
         }
 
         for (ActorRef neighbor : this.neighbors) {
@@ -177,16 +177,6 @@ public class NodeAct extends AbstractActor {
             this.asked = true;
             this.holder.tell(new RequestToken(), getSelf());
 
-        } else if (this.holder == getSelf() ||
-                // use custom conditions since we don't want to match
-                // when `this.asked` is true (this latter is only a condition to
-                // prevent flooding the network with unnecessary requests)
-                this.request_q.isEmpty()) {
-            log.error("Tried to send token request but one of the conditions was violated\n" +
-                            "Is holder NOT the current actor: {}\n" +
-                            "Is current actor's request_q NOT empty: {}",
-                    this.holder != getSelf()
-                    , !this.request_q.isEmpty());
         }
     }
 
@@ -231,19 +221,28 @@ public class NodeAct extends AbstractActor {
             log.info("Sending privilege to node: {}", this.holder.path().name());
             this.holder.tell(new SendToken(), getSelf());
 
-        } else {
-            log.error("Tried to send privilege but one of the conditions was violated\n" +
-                            "Is current actor holder: {}\n" +
-                            "Is current actor using: {}\n" +
-                            "Is current actor's request_q empty: {}\n" +
-                            "Is current actor at the head of its request_q: {}",
-                    this.holder == getSelf()
-                    , this.using
-                    , this.request_q.isEmpty()
-                    , (this.request_q.getFirst() == getSelf()));
         }
+// this else is not really needed. It will print error messages even in case that there are no
+// entries in request_q, which is not really an error. It might be useful for debugging though.
+//
+//        else {
+//            log.error("Tried to send privilege but one of the conditions was violated\n" +
+//                            "Is current actor holder: {}\n" +
+//                            "Is current actor using: {}\n" +
+//                            "Is current actor's request_q empty: {}\n" +
+//                            "Is current actor at the head of its request_q: {}",
+//                    this.holder == getSelf()
+//                    , this.using
+//                    , this.request_q.isEmpty()
+//                    , (this.request_q.getFirst() == getSelf()));
+//        }
     }
 
+    /**
+     * "Enters" the critical section and accesses the {@link ResourceActor} resource
+     *
+     * @param msg
+     */
     private void handleEnterCS(EnterCriticalSection msg) {
         this.using = true;
 
@@ -252,11 +251,23 @@ public class NodeAct extends AbstractActor {
         resource_actor.tell(new ResourceActor.AccessResource(), getSelf());
     }
 
+    /**
+     * Once the {@link ResourceActor} signals that the critical section has finished then this
+     * method is invoked.
+     * <p>
+     * Actor no longer needs to enter critical section so the token can now be sent to other actors.
+     *
+     * @param msg
+     */
     private void handleExitCS(ExitCriticalSection msg) {
         this.using = false;
         log.info("Just exited critical section");
 
         getSelf().tell(new InvokePriviledgeSend(), getSelf());
+    }
+
+    private void uenterCS(UEnterCS msg) {
+        getSelf().tell(new RequestToken(), getSelf());
     }
 
     private void handleRestart(Restart msg) {
@@ -266,10 +277,6 @@ public class NodeAct extends AbstractActor {
     }
 
     private void usimulateCrash(USimulateCrash msg) {
-    }
-
-    private void uenterCS(UEnterCS msg) {
-        getSelf().tell(new RequestToken(), getSelf());
     }
 
     // ----------------------------------------------------
