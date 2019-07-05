@@ -6,6 +6,7 @@ import akka.actor.ActorSystem;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Scanner;
 
 public class AkkaStartSystem {
     public static void main(String[] args) {
@@ -100,9 +101,65 @@ public class AkkaStartSystem {
 
             n7.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
 
-            System.out.println(">>> Press ENTER to exit <<<");
-            System.in.read();
-        } catch (IOException ioe) {
+
+            // -----------------------------------------------------
+            // Small interface to interact with program
+            String interface_description = "------------------------------------------\n" +
+                    "Small interface to interact with the program\n" +
+                    "Inputs:\n" +
+                    "\t 'h' to print this message\n" +
+                    "\t 'q' to exit\n" +
+                    "\t 'cs node_name' so that `node_name` enters critical section\n" +
+                    "\t 'crash node_name' so that `node_name` simulates a crash\n\n" +
+                    "Note that multiple inputs can be entered at once by separating them with ; . For example:\n" +
+                    "\t cs node_1; cs node_2; crash node_5\n" +
+                    "------------------------------------------";
+
+            System.out.println(interface_description);
+            Scanner in = new Scanner(System.in);
+            String inpt;
+            String[] parsed_inputs;
+
+            while (true) {
+                inpt = in.nextLine();
+
+                if (inpt.contains(";")) {
+                    parsed_inputs = inpt.split(";");
+                } else {
+                    parsed_inputs = new String[1];
+                    parsed_inputs[0] = inpt;
+                }
+
+                for (String u_input : parsed_inputs) {
+                    u_input = u_input.trim();
+                    if (u_input.isEmpty()) {
+                        continue;
+                    }
+
+
+                    if (u_input.equals("h")) {
+                        System.out.println(interface_description);
+                    } else if (u_input.equals("q")) {
+                        break;
+                    } else if (u_input.startsWith("cs ")) {
+                        system.actorSelection(
+                                "akka://DMX/user/" + u_input.split(" ")[1])
+                                .tell(
+                                        new NodeAct.UEnterCS(),
+                                        ActorRef.noSender());
+                    } else if (u_input.startsWith("crash ")) {
+                        system.actorSelection(
+                                "akka://DMX/user/" + u_input.split(" ")[1])
+                                .tell(
+                                        new NodeAct.USimulateCrash(),
+                                        ActorRef.noSender());
+                    } else {
+                        System.out.println("Input not recognized. Enter 'h' for help");
+                    }
+                }
+
+            }
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
