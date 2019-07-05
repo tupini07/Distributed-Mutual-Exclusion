@@ -97,21 +97,6 @@ public class AkkaStartSystem {
             Thread.sleep(2000);
 
             // -----------------------------------------------------
-            // Enter Critical Section
-
-            n1.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n2.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n3.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n4.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n5.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n6.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n7.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n8.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n9.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-            n10.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
-
-
-            // -----------------------------------------------------
             // Small interface to interact with program
             String interface_description = "------------------------------------------\n" +
                     "Small interface to interact with the program\n" +
@@ -119,6 +104,7 @@ public class AkkaStartSystem {
                     "\t 'h' to print this message\n" +
                     "\t 'q' to exit\n" +
                     "\t 'cs node_name' so that `node_name` enters critical section\n" +
+                    "\t 'csall' so ALL nodes enter into the critical section\n" +
                     "\t 'crash node_name' so that `node_name` simulates a crash\n\n" +
                     "Note that multiple inputs can be entered at once by separating them with ; . For example:\n" +
                     "\t cs node_1; cs node_2; crash node_5\n" +
@@ -162,6 +148,13 @@ public class AkkaStartSystem {
                                 .tell(
                                         new NodeAct.USimulateCrash(),
                                         ActorRef.noSender());
+
+                    } else if (u_input.equals("csall")) {
+                        for (ActorRef nd : Arrays.asList(
+                                n1, n2, n3, n4, n5, n6, n7, n8, n9, n10
+                        )) {
+                            nd.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
+                        }
                     } else {
                         System.out.println("Input not recognized. Enter 'h' for help");
                     }
