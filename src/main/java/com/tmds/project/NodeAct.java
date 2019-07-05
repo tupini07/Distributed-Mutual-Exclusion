@@ -115,7 +115,13 @@ public class NodeAct extends AbstractActor {
     /**
      * Message sent from the user to signal a specific actor to simulate a crash
      */
-    static public class SimulateCrash {
+    static public class USimulateCrash {
+    }
+
+    /**
+     * Message sent from the user to signal a specific actor to enter the CS
+     */
+    static public class UEnterCS {
     }
 
     // ----------------------------------------------------
@@ -123,7 +129,7 @@ public class NodeAct extends AbstractActor {
 
     private void handleInitialize(Initialize msg) {
         if (this.holder != null) {
-            // if this node has already recieved the initialize message then don't
+            // if this node has already received the initialize message then don't
             // propagate it further
             return;
         }
@@ -154,24 +160,60 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void handleTokenRequest(RequestToken msg) {
-        ActorRef sender = getSender();
+        ActorRef requester = getSender();
 
-        if (!this.request_q.contains(sender)) {
-            this.request_q.add(sender);
+        if (!this.request_q.contains(requester)) {
+            this.request_q.add(requester);
+        }
+
+        // ask for the token if needed
+        if (this.holder != getSelf() &&
+                !this.request_q.isEmpty() &&
+                !this.asked) {
+
+            this.asked = true;
+            this.holder.tell(new RequestToken(), getSelf());
+
+        } else if (this.holder == getSelf() ||
+                // use custom conditions since we don't want to match
+                // when `this.asked` is true (this latter is only a condition to
+                // prevent flooding the network with unnecessary requests)
+                this.request_q.isEmpty()) {
+            log.error("Tried to send token request but one of the conditions was violated\n" +
+                            "Is holder NOT the current actor: {}\n" +
+                            "Is current actor's request_q NOT empty: {}",
+                    this.holder != getSelf()
+                    , !this.request_q.isEmpty());
         }
     }
 
+    /**
+     * When we recieve the token
+     *
+     * @param msg
+     */
     private void handleTokenReceive(SendToken msg) {
+        this.holder = getSelf(); // since we now own the token
+
         // if current actor needs it then use it. Else send it over
         if (this.request_q.getFirst() == getSelf()) {
             this.request_q.pop();
             this.using = true;
+
+
+            // Current actor will send InvokePriviledgeSend to itself
+            // once it exits the CS
             getSelf().tell(new EnterCriticalSection(), getSelf());
         } else {
             getSelf().tell(new InvokePriviledgeSend(), getSelf());
         }
     }
 
+    /**
+     * Sends the privilege (token) to the next actor in `request_q`.
+     *
+     * @param msg
+     */
     private void sendPriviledge(InvokePriviledgeSend msg) {
         if (this.holder == getSelf()
                 && !this.using
@@ -220,7 +262,11 @@ public class NodeAct extends AbstractActor {
     private void handleAdvise(Advise msg) {
     }
 
-    private void simulateCrash(SimulateCrash msg) {
+    private void usimulateCrash(USimulateCrash msg) {
+    }
+
+    private void uenterCS(UEnterCS msg) {
+        getSelf().tell(new RequestToken(), getSelf());
     }
 
     // ----------------------------------------------------
@@ -234,6 +280,7 @@ public class NodeAct extends AbstractActor {
 
                 .match(RequestToken.class, this::handleTokenRequest)
                 .match(SendToken.class, this::handleTokenReceive)
+
                 .match(InvokePriviledgeSend.class, this::sendPriviledge)
 
                 .match(EnterCriticalSection.class, this::handleEnterCS)
@@ -242,7 +289,8 @@ public class NodeAct extends AbstractActor {
                 .match(Restart.class, this::handleRestart)
                 .match(Advise.class, this::handleAdvise)
 
-                .match(SimulateCrash.class, this::simulateCrash)
+                .match(USimulateCrash.class, this::usimulateCrash)
+                .match(UEnterCS.class, this::uenterCS)
                 .build();
     }
 }
