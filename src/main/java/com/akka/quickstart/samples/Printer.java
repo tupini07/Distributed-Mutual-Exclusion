@@ -1,4 +1,4 @@
-package com.tmds.project;
+package com.akka.quickstart.samples;
 
 import akka.actor.AbstractActor;
 import akka.actor.Props;

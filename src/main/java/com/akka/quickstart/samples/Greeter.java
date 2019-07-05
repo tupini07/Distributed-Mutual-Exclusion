@@ -1,9 +1,9 @@
-package com.tmds.project;
+package com.akka.quickstart.samples;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import com.tmds.project.Printer.Greeting;
+import com.akka.quickstart.samples.Printer.Greeting;
 
 //#greeter-messages
 public class Greeter extends AbstractActor {
