@@ -39,6 +39,12 @@ public class NodeAct extends AbstractActor {
 
     // ----------------------------------------------------
     // Message classes that are handled
+
+    /**
+     * This is the Initialization message that is flooded through the network so that all nodes know
+     * where the token is. It is sent by the user, and the first node receiving it is the holder of
+     * the token.
+     */
     static public class Initialize {
         public final boolean is_first; // whether this is the first node in the flood or not
 
@@ -47,6 +53,9 @@ public class NodeAct extends AbstractActor {
         }
     }
 
+    /**
+     * Initialization message sent by the user to an actor so that the actor can know who its neighbors are
+     */
     static public class SetNeighbors {
         public final HashSet<ActorRef> neighbors;
 
@@ -55,24 +64,52 @@ public class NodeAct extends AbstractActor {
         }
     }
 
+    /**
+     * Message sent to an actor when the sender wants to receive the token from
+     * said actor
+     */
     static public class RequestToken {
     }
 
+    /**
+     * Message sent to an actor when the current node wants to send the token to said actor
+     * The sending of this message implies that the sender (before sending) holds the token
+     */
     static public class SendToken {
     }
 
+    /**
+     * Message that an actor sends to itself to signal that it can enter the critical section
+     * This means that it has the token, and is using it
+     */
     static public class EnterCriticalSection {
     }
 
+    /**
+     * Message that an actor sends to itself after it exits the critical section
+     * This means that the agent is no longer using the token
+     */
     static public class ExitCriticalSection {
     }
 
+    /**
+     * Message that an actor sends to all its neighbors after it crashes
+     */
     static public class Restart {
     }
 
+    /**
+     * Message that neighbors send in respond to a `Restart` message. It contains the
+     * information necessary for the actor who send `Restart` to partly reconstruct its state
+     */
     static public class Advise {
     }
 
+    /**
+     * Message sent from the user to signal a specific actor to simulate a crash
+     */
+    static public class SimulateCrash {
+    }
 
     // ----------------------------------------------------
 
@@ -120,6 +157,8 @@ public class NodeAct extends AbstractActor {
     private void handleAdvise(Advise msg) {
     }
 
+    private void simulateCrash(SimulateCrash msg) {
+    }
 
     // ----------------------------------------------------
     // mapping between message classes and methods for handling
@@ -138,6 +177,8 @@ public class NodeAct extends AbstractActor {
 
                 .match(Restart.class, this::handleRestart)
                 .match(Advise.class, this::handleAdvise)
+
+                .match(SimulateCrash.class, this::simulateCrash)
                 .build();
     }
 }
