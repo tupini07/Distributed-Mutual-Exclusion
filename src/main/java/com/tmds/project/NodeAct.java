@@ -279,9 +279,36 @@ public class NodeAct extends AbstractActor {
     }
 
     private void handleRestart(Restart msg) {
+      //  When a node X restarts, it commences a recovery phase. 
+        //  The first action of the recovery phase is to delay for a period sufficiently long to ensure that all messages sent by node X before it failed have been received. 
+        
+            
+        //  Node X then sends RESTART messages to each of its neighbors, and awaits the ADVISE messages that each neighbor will send in reply. 
+        
+      /*  During the recovery phase, node X may receive REQUEST and PRIVILEGE messages from neighboring nodes. 
+            If X receives a REQUEST message from node Y, then Y is placed in REQUEST-Qx. 
+            If X receives a PRIVILEGE message, then HOLDERX becomes “self.” If node X wishes to enter the critical section during the recovery phase, then “self” is placed in REQUEST-Qx. 
+          (All of these actions are the normal responses to these events.)
+      */
+        
+       /*   However the procedures ASSIGN-PRIVILEGE and MAKE-REQUEST are not called during the recovery phase. 
+          The recovery phase involves information gathering and reconstruction of local data. Until that task is complete, node X must not attempt to make decisions based on incomplete information. 
+          After the recovery phase is completed, ASSIGN-PRIVILEGE and MAKE-REQUEST are then called to allow node X to recommence its participation in the algorithm.       
+      */
+
     }
 
     private void handleAdvise(Advise msg) {
+        // When a neighboring node Y receives X’s RESTART message, Y must reply send an ADVISE message informing X of the state of the X - Y relationship as Y sees it. 
+        
+        // Below are the four possible states (corresponding to each of the four messages in the logical pattern of X - Y communication), together with the information that X can deduce from this relationship. 
+        
+        //(1) HOLDERy = X and ASKEDy = false => Hence X may be the privileged node, and Y is not an element of REQUEST-Q,.
+        //(2) HOLDERy = X and ASKEDy = true => Again X may be the privileged node, and Y is an element of REQUEST-Qx.
+        //(3) HOLDERy != X and X is NOT in REQUEST-Qy => Hence X is not the privileged node (it is node Y or beyond), and ASKEDx must be false.
+        //(4) HOLDERy != X and X is in REQUEST-Qy => Again X is not the privileged node, and it has requested the privilege so ASKEDx must be true. 
+
+  
     }
 
     private void usimulateCrash(USimulateCrash msg) {
