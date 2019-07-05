@@ -149,7 +149,7 @@ public class AkkaStartSystem {
                     if (u_input.equals("h")) {
                         System.out.println(interface_description);
                     } else if (u_input.equals("q")) {
-                        break;
+                        return; // exit
                     } else if (u_input.startsWith("cs ")) {
                         system.actorSelection(
                                 "akka://DMX/user/" + u_input.split(" ")[1])
