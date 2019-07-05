@@ -79,6 +79,13 @@ public class NodeAct extends AbstractActor {
     }
 
     /**
+     * Sent by an actor to itself to indicate that the token should be passed on.
+     * The sending of this message implies that the actor holds the token and is not using it.
+     */
+    static public class InvokePriviledgeSend {
+    }
+
+    /**
      * Message that an actor sends to itself to signal that it can enter the critical section
      * This means that it has the token, and is using it
      */
@@ -139,16 +146,72 @@ public class NodeAct extends AbstractActor {
         this.neighbors = msg.neighbors;
     }
 
+    /**
+     * When this actor is requested to send the token to another actor
+     * <p>
+     * We simply add the requesting actor to the `request_q`
+     *
+     * @param msg
+     */
     private void handleTokenRequest(RequestToken msg) {
+        ActorRef sender = getSender();
+
+        if (!this.request_q.contains(sender)) {
+            this.request_q.add(sender);
+        }
     }
 
     private void handleTokenReceive(SendToken msg) {
+        // if current actor needs it then use it. Else send it over
+        if (this.request_q.getFirst() == getSelf()) {
+            this.request_q.pop();
+            this.using = true;
+            getSelf().tell(new EnterCriticalSection(), getSelf());
+        } else {
+            getSelf().tell(new InvokePriviledgeSend(), getSelf());
+        }
+    }
+
+    private void sendPriviledge(InvokePriviledgeSend msg) {
+        if (this.holder == getSelf()
+                && !this.using
+                && !this.request_q.isEmpty()
+                && !(this.request_q.getFirst() == getSelf())) {
+
+            // set new holder
+            this.holder = this.request_q.pop();
+            this.asked = false;
+
+            log.info("Sending privilege to node: {}", this.holder.path().name());
+            this.holder.tell(new SendToken(), getSelf());
+
+        } else {
+            log.error("Tried to send privilege but one of the conditions was violated\n" +
+                            "Is current actor holder: {}\n" +
+                            "Is current actor using: {}\n" +
+                            "Is current actor's request_q empty: {}\n" +
+                            "Is current actor at the head of its request_q: {}",
+                    this.holder == getSelf()
+                    , this.using
+                    , this.request_q.isEmpty()
+                    , (this.request_q.getFirst() == getSelf()));
+        }
     }
 
     private void handleEnterCS(EnterCriticalSection msg) {
+        this.using = true;
+
+        // here we access the resource.
+        // maybe we could use something like https://doc.akka.io/docs/akka/current/futures.html
+
+        // send a message to the resource that symbolized that we're accessing it,
+        // wait for the resource's response and once we get it then we can (exit CS) do:
+        getSelf().tell(new ExitCriticalSection(), getSelf());
     }
 
     private void handleExitCS(ExitCriticalSection msg) {
+        this.using = false;
+        getSelf().tell(new InvokePriviledgeSend(), getSelf());
     }
 
     private void handleRestart(Restart msg) {
@@ -171,6 +234,7 @@ public class NodeAct extends AbstractActor {
 
                 .match(RequestToken.class, this::handleTokenRequest)
                 .match(SendToken.class, this::handleTokenReceive)
+                .match(InvokePriviledgeSend.class, this::sendPriviledge)
 
                 .match(EnterCriticalSection.class, this::handleEnterCS)
                 .match(ExitCriticalSection.class, this::handleExitCS)
