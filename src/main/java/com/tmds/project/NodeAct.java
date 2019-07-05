@@ -112,8 +112,8 @@ public class NodeAct extends AbstractActor {
     }
 
     // ----------------------------------------------------
-
     // implementation of handling for messages
+
     private void handleInitialize(Initialize msg) {
         if (this.holder != null) {
             // if this node has already recieved the initialize message then don't

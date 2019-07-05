@@ -1,47 +1,53 @@
 package com.tmds.project;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
-//#printer-messages
+import java.util.HashSet;
+import java.util.LinkedList;
+
 public class ResourceActor extends AbstractActor {
 
-  public ResourceActor(LoggingAdapter log) {
-    this.log = log;
-  }
+    private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-  //#printer-messages
-  static public Props props() {
-    return Props.create(ResourceActor.class, () -> new ResourceActor());
-  }
+    private String name;
 
-  //#printer-messages
-  static public class Greeting {
-    public final String message;
-
-    public Greeting(String message) {
-      this.message = message;
+    public ResourceActor(String name) {
+        this.name = name;
     }
-  }
-  //#printer-messages
 
-  private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+    static public Props props(String name) {
+        return Props.create(ResourceActor.class, () -> new ResourceActor(name));
+    }
 
-  public ResourceActor() {
-  }
+    // ----------------------------------------------------
+    // Message classes that are handled
 
+    /**
+     * Message sent from a {@link NodeAct} actor which signifies that said actor wants to use this
+     * resource. The sending of this message implies that the sender holds the token and is using it.
+     */
+    static public class AccessResource {
+        // message should include actor ID
+    }
 
+    // ----------------------------------------------------
+    // implementation of handling for messages
 
-  @Override
-  public Receive createReceive() {
-    return receiveBuilder()
-        .match(Greeting.class, greeting -> {
-            log.info(greeting.message);
-        })
-        .build();
-  }
-//#printer-messages
+    private void handleResourceAccess(AccessResource msg) {
+        // this should potentially print something stating that the
+        // resource is being accessed, and the id of the actor accessing it
+    }
+
+    // ----------------------------------------------------
+    // mapping between message classes and methods for handling
+    @Override
+    public Receive createReceive() {
+        return receiveBuilder()
+                .match(AccessResource.class, this::handleResourceAccess)
+                .build();
+    }
 }
-//#printer-messages
