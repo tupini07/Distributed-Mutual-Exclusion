@@ -213,6 +213,13 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void handleTokenRequest(RequestToken msg) {
+        // if we're recovering then we delay the evaluation of the RequestToken message
+        // until the recovering process is complete
+        if (this.is_recovering) {
+            this.queuedMessages.add(new Pair<>(getSender(), msg));
+            return;
+        }
+
         ActorRef requester = getSender();
         log.info("Received token request from node {}", requester.path().name());
 
@@ -273,6 +280,14 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void sendPriviledge(InvokePriviledgeSend msg) {
+        // if we're recovering then we don't send privilege.
+        // We delay until the recovering is complete.
+        if (this.is_recovering) {
+            this.queuedMessages.add(new Pair<>(getSender(), msg));
+            return;
+        }
+
+
         if (this.holder.equals(getSelf())
                 && !this.using
                 && !this.request_q.isEmpty()
@@ -411,8 +426,15 @@ public class NodeAct extends AbstractActor {
 
         // proceed to resend al queued messages
 
+        // TODO: this won't work. messages currently in the queue will probably be
+        // newer than this.queuedMessages and should not execute before them.
+        // an idea would be to rotate the list of messages, shift it until the processed
+        // message is the oldest one. Maybe add a "BaseMessage" which includes a timestamp and use
+        // an instance variable to track which was the oldest message (timestamp should be monotonically
+        // increasing until it decreases [because of FIFO that should be the oldest message])
+
+
         for (Pair<ActorRef, Object> mQueue : this.queuedMessages) {
-//            getSelf().forward();
             getSelf().tell(mQueue.second(), mQueue.first());
         }
 
@@ -426,6 +448,13 @@ public class NodeAct extends AbstractActor {
      * @param msg
      */
     private void handleInitializeRecovery(InitializeRecovery msg) {
+
+        // as per project assumptions, we can't crash while in the critical section
+        // so if we're in CS (this.using) then just resquedule this message
+        if (this.using) {
+            getSelf().tell(msg, getSelf());
+        }
+
         this.is_recovering = true;
 
         log.info("Node {} crashed! Initializing recovery procedure", getSelf().path().name());
@@ -446,7 +475,6 @@ public class NodeAct extends AbstractActor {
         }
 
     }
-
 
     private void usimulateCrash(USimulateCrash msg) {
         // remove local state and then:
