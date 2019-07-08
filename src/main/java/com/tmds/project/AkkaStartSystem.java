@@ -2,6 +2,7 @@ package com.tmds.project;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -9,7 +10,9 @@ import java.util.HashSet;
 import java.util.Scanner;
 
 public class AkkaStartSystem {
+
     public static void main(String[] args) {
+
         final ActorSystem system = ActorSystem.create("DMX");
 
         try {
@@ -17,16 +20,16 @@ public class AkkaStartSystem {
             final ActorRef resourcn = system.actorOf(ResourceActor.props(), "Bathroom");
 
             // NOTE: Topology comes from Figure 7 of K. Raymond paper
-            final ActorRef n1 = system.actorOf(NodeAct.props(1, resourcn), "node_1");
-            final ActorRef n2 = system.actorOf(NodeAct.props(2, resourcn), "node_2");
-            final ActorRef n3 = system.actorOf(NodeAct.props(3, resourcn), "node_3");
-            final ActorRef n4 = system.actorOf(NodeAct.props(4, resourcn), "node_4");
-            final ActorRef n5 = system.actorOf(NodeAct.props(5, resourcn), "node_5");
-            final ActorRef n6 = system.actorOf(NodeAct.props(6, resourcn), "node_6");
-            final ActorRef n7 = system.actorOf(NodeAct.props(7, resourcn), "node_7");
-            final ActorRef n8 = system.actorOf(NodeAct.props(8, resourcn), "node_8");
-            final ActorRef n9 = system.actorOf(NodeAct.props(9, resourcn), "node_9");
-            final ActorRef n10 = system.actorOf(NodeAct.props(10, resourcn), "node_10");
+            final ActorRef n1 = system.actorOf(NodeAct.props(resourcn), "node_1");
+            final ActorRef n2 = system.actorOf(NodeAct.props(resourcn), "node_2");
+            final ActorRef n3 = system.actorOf(NodeAct.props(resourcn), "node_3");
+            final ActorRef n4 = system.actorOf(NodeAct.props(resourcn), "node_4");
+            final ActorRef n5 = system.actorOf(NodeAct.props(resourcn), "node_5");
+            final ActorRef n6 = system.actorOf(NodeAct.props(resourcn), "node_6");
+            final ActorRef n7 = system.actorOf(NodeAct.props(resourcn), "node_7");
+            final ActorRef n8 = system.actorOf(NodeAct.props(resourcn), "node_8");
+            final ActorRef n9 = system.actorOf(NodeAct.props(resourcn), "node_9");
+            final ActorRef n10 = system.actorOf(NodeAct.props(resourcn), "node_10");
 //            final ActorRef n11 = system.actorOf(NodeAct.props(11), "node_11");
 //            final ActorRef n12 = system.actorOf(NodeAct.props(12), "node_12");
 //            final ActorRef n13 = system.actorOf(NodeAct.props(13), "node_13");
@@ -87,7 +90,6 @@ public class AkkaStartSystem {
 
             // Ensure that the tree has been built correctly
             Thread.sleep(2000);
-
 
             // -----------------------------------------------------
             // choose a random node as the initial possessor of the token
@@ -169,4 +171,6 @@ public class AkkaStartSystem {
         }
 
     }
+
 }
+
