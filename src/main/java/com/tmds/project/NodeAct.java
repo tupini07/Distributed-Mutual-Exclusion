@@ -5,7 +5,9 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.japi.Pair;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -14,7 +16,6 @@ public class NodeAct extends AbstractActor {
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     // Private variables that identify this node
-    private final int node_id; // for debugging
     private HashSet<ActorRef> neighbors;
     private final ActorRef resource_actor;
 
@@ -24,19 +25,26 @@ public class NodeAct extends AbstractActor {
     private LinkedList<ActorRef> request_q; // FIFO queue holding the requests for the token that this node is processing
     private boolean asked; // whether this node has asked a neighbor for the node
 
+    // specific for the recovery part
+    private boolean is_recovering; // tells if the current node is in recovery mode or not
+    private HashMap<ActorRef, Advise> receivedAdvises; // to know which neighbors have sent an Advise message and what this message was
+    private LinkedList<Pair<ActorRef, Object>> queuedMessages; // to hold messages which cannot be processed during recovery (MAKE_REQUEST and ASSIGN_PRIVILEGE)
 
-    public NodeAct(int node_id, ActorRef resource_actor) {
-        this.node_id = node_id;
+    public NodeAct(ActorRef resource_actor) {
         this.resource_actor = resource_actor;
 
         this.request_q = new LinkedList<ActorRef>();
         this.using = false;
         this.asked = false;
+
+        this.is_recovering = false;
+        this.receivedAdvises = new HashMap<>();
+        this.queuedMessages = new LinkedList<>();
     }
 
 
-    static public Props props(int node_id, ActorRef resource_actor) {
-        return Props.create(NodeAct.class, () -> new NodeAct(node_id, resource_actor));
+    static public Props props(ActorRef resource_actor) {
+        return Props.create(NodeAct.class, () -> new NodeAct(resource_actor));
     }
 
     // ----------------------------------------------------
@@ -112,6 +120,22 @@ public class NodeAct extends AbstractActor {
      * information necessary for the actor who send `Restart` to partly reconstruct its state
      */
     static public class Advise {
+        public final ActorRef holder_y; // who is the holder according to Y
+        public final boolean asked_y; // if y has already "asked" for the token
+        public final boolean x_in_y_request_q; // x is y's request_q
+
+        public Advise(ActorRef holder, boolean asked, boolean x_in_y_request_q) {
+            this.holder_y = holder;
+            this.asked_y = asked;
+            this.x_in_y_request_q = x_in_y_request_q;
+        }
+    }
+
+    /**
+     * A node sends this message to itself when it restarts after crashing. This message initializes the recovery
+     * procedure
+     */
+    static public class InitializeRecovery {
     }
 
     /**
@@ -126,6 +150,33 @@ public class NodeAct extends AbstractActor {
     static public class UEnterCS {
     }
 
+
+    // ----------------------------------------------------
+    // mapping between message classes and methods for handling
+    @Override
+    public Receive createReceive() {
+        return receiveBuilder()
+                .match(SetNeighbors.class, this::setNeighbors)
+
+                .match(Initialize.class, this::handleInitialize)
+
+                .match(RequestToken.class, this::handleTokenRequest)
+                .match(SendToken.class, this::handleTokenReceive)
+
+                .match(InvokePriviledgeSend.class, this::sendPriviledge)
+
+                .match(EnterCriticalSection.class, this::handleEnterCS)
+                .match(ExitCriticalSection.class, this::handleExitCS)
+
+                .match(Restart.class, this::handleRestart)
+                .match(Advise.class, this::handleAdvise)
+                .match(InitializeRecovery.class, this::handleInitializeRecovery)
+
+                .match(USimulateCrash.class, this::usimulateCrash)
+                .match(UEnterCS.class, this::uenterCS)
+                .build();
+    }
+
     // ----------------------------------------------------
     // implementation of handling for messages
 
@@ -136,7 +187,7 @@ public class NodeAct extends AbstractActor {
             return;
         }
 
-        log.info("Initializing node: {}", this.node_id);
+        log.info("Initializing node: {}", getSelf().path().name());
 
         if (msg.is_first) {
             this.holder = getSelf();
@@ -278,64 +329,129 @@ public class NodeAct extends AbstractActor {
         getSelf().tell(new RequestToken(), getSelf());
     }
 
+    /**
+     * When a neighbor of the current node fails it sends a {@link Restart} message to the current node
+     * and expects this to return an {@link Advise} message with the information needed for it to
+     * recover its internal state
+     *
+     * @param msg
+     */
     private void handleRestart(Restart msg) {
-      //  When a node X restarts, it commences a recovery phase. 
-        //  The first action of the recovery phase is to delay for a period sufficiently long to ensure that all messages sent by node X before it failed have been received. 
-        
-            
-        //  Node X then sends RESTART messages to each of its neighbors, and awaits the ADVISE messages that each neighbor will send in reply. 
-        
-      /*  During the recovery phase, node X may receive REQUEST and PRIVILEGE messages from neighboring nodes. 
-            If X receives a REQUEST message from node Y, then Y is placed in REQUEST-Qx. 
-            If X receives a PRIVILEGE message, then HOLDERX becomes “self.” If node X wishes to enter the critical section during the recovery phase, then “self” is placed in REQUEST-Qx. 
-          (All of these actions are the normal responses to these events.)
-      */
-        
-       /*   However the procedures ASSIGN-PRIVILEGE and MAKE-REQUEST are not called during the recovery phase. 
-          The recovery phase involves information gathering and reconstruction of local data. Until that task is complete, node X must not attempt to make decisions based on incomplete information. 
-          After the recovery phase is completed, ASSIGN-PRIVILEGE and MAKE-REQUEST are then called to allow node X to recommence its participation in the algorithm.       
-      */
+        log.info("Recieved a restart message from node {}. Sending an advise", getSender().path().name());
+
+        getSender().tell(
+                new Advise(this.holder,
+                        this.asked,
+                        this.request_q.contains(getSender())),
+                getSelf());
+    }
+
+    /**
+     * Invoked when the current node gets an advise message. It keeps a record of all received advises, and once an
+     * advise has been received from all neighbors it starts the reconstruction of the local state.
+     *
+     * @param advise
+     */
+    private void handleAdvise(Advise advise) {
+
+        this.receivedAdvises.putIfAbsent(getSender(), advise);
+
+        log.info("Received advise message from {}", getSender().path().name());
+
+        // stop execution if we don't posses an Advise from all of our neighbors
+        for (ActorRef neighbor : this.neighbors) {
+            if (!this.receivedAdvises.containsKey(neighbor)) {
+                return;
+            }
+        }
+
+        log.info("Received advise from all nodes! Starting internal state reconstruction");
+
+        // if we have information from all neighbors then we proceed to
+        // reconstruct our internal state
+        this.using = false;
+
+        // tells us if all neighbors think the current node is the holder
+        // if true then it must mean that we're actually the holder
+        boolean holderForAllNeighbors = true;
+
+        for (HashMap.Entry mEntry : this.receivedAdvises.entrySet()) {
+
+            ActorRef m_advisor = (ActorRef) mEntry.getKey();
+            Advise m_advise = (Advise) mEntry.getValue();
+
+            // this node is the holder of the token according to Y
+            boolean holder_according_to_y = m_advise.holder_y.equals(getSelf());
+
+            // if Y thinks we hold the token and Y has already asked us for the token
+            if (holder_according_to_y && m_advise.asked_y) {
+                this.request_q.add(m_advisor);
+            }
+
+            // if Y knows we don't have the token
+            if (!holder_according_to_y) {
+                // current node is NOT the holder according to Y
+                // this means that Y must be the holder according to the current node
+                this.holder = m_advisor;
+
+                // we have asked Y for the token or not
+                this.asked = m_advise.x_in_y_request_q;
+            }
+
+            holderForAllNeighbors = holderForAllNeighbors && holder_according_to_y;
+        }
+
+
+        if (holderForAllNeighbors) {
+            this.holder = getSelf();
+        }
+
+        // after recieving advise from all neighbors
+        this.receivedAdvises.clear();
+
+        // proceed to resend al queued messages
+
+        for (Pair<ActorRef, Object> mQueue : this.queuedMessages) {
+//            getSelf().forward();
+            getSelf().tell(mQueue.second(), mQueue.first());
+        }
+
+        this.is_recovering = false;
+        this.queuedMessages.clear();
+    }
+
+    /**
+     * Starts the recovery procedure for the current node. To be executed after a crash.
+     *
+     * @param msg
+     */
+    private void handleInitializeRecovery(InitializeRecovery msg) {
+        this.is_recovering = true;
+
+        log.info("Node {} crashed! Initializing recovery procedure", getSelf().path().name());
+
+        // reset local state
+        this.holder = null;
+        this.asked = false;
+        this.using = false;
+        this.request_q.clear();
+
+        // setup datastructures for recovery procedure
+        this.receivedAdvises.clear();
+        this.queuedMessages.clear();
+
+        // tell all neighbors that we crashed
+        for (ActorRef neighbor : this.neighbors) {
+            neighbor.tell(new Restart(), getSelf());
+        }
 
     }
 
-    private void handleAdvise(Advise msg) {
-        // When a neighboring node Y receives X’s RESTART message, Y must reply send an ADVISE message informing X of the state of the X - Y relationship as Y sees it. 
-        
-        // Below are the four possible states (corresponding to each of the four messages in the logical pattern of X - Y communication), together with the information that X can deduce from this relationship. 
-        
-        //(1) HOLDERy = X and ASKEDy = false => Hence X may be the privileged node, and Y is not an element of REQUEST-Q,.
-        //(2) HOLDERy = X and ASKEDy = true => Again X may be the privileged node, and Y is an element of REQUEST-Qx.
-        //(3) HOLDERy != X and X is NOT in REQUEST-Qy => Hence X is not the privileged node (it is node Y or beyond), and ASKEDx must be false.
-        //(4) HOLDERy != X and X is in REQUEST-Qy => Again X is not the privileged node, and it has requested the privilege so ASKEDx must be true. 
-
-  
-    }
 
     private void usimulateCrash(USimulateCrash msg) {
+        // remove local state and then:
+        getSelf().tell(new InitializeRecovery(), getSelf());
     }
 
-    // ----------------------------------------------------
-    // mapping between message classes and methods for handling
-    @Override
-    public Receive createReceive() {
-        return receiveBuilder()
-                .match(SetNeighbors.class, this::setNeighbors)
 
-                .match(Initialize.class, this::handleInitialize)
-
-                .match(RequestToken.class, this::handleTokenRequest)
-                .match(SendToken.class, this::handleTokenReceive)
-
-                .match(InvokePriviledgeSend.class, this::sendPriviledge)
-
-                .match(EnterCriticalSection.class, this::handleEnterCS)
-                .match(ExitCriticalSection.class, this::handleExitCS)
-
-                .match(Restart.class, this::handleRestart)
-                .match(Advise.class, this::handleAdvise)
-
-                .match(USimulateCrash.class, this::usimulateCrash)
-                .match(UEnterCS.class, this::uenterCS)
-                .build();
-    }
 }
