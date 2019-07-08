@@ -389,6 +389,7 @@ public class NodeAct extends AbstractActor {
         // tells us if all neighbors think the current node is the holder
         // if true then it must mean that we're actually the holder
         boolean holderForAllNeighbors = true;
+        boolean currentIsHolder = getSelf().equals(this.holder);
 
         for (HashMap.Entry mEntry : this.receivedAdvises.entrySet()) {
 
@@ -403,14 +404,19 @@ public class NodeAct extends AbstractActor {
                 this.request_q.add(m_advisor);
             }
 
-            // if Y knows we don't have the token
-            if (!holder_according_to_y) {
+            // if Y knows we don't have the token.
+            // Note that if we have received the token previously then we will be the holder
+            // this message may have been processed after the "SendToken" one, meaning that its
+            // information is outdated and must be ignored
+            if (!holder_according_to_y && !currentIsHolder) {
+
                 // current node is NOT the holder according to Y
                 // this means that Y must be the holder according to the current node
                 this.holder = m_advisor;
 
                 // we have asked Y for the token or not
                 this.asked = m_advise.x_in_y_request_q;
+
             }
 
             holderForAllNeighbors = holderForAllNeighbors && holder_according_to_y;
