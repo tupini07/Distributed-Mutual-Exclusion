@@ -2,9 +2,7 @@ package com.tmds.project;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -107,6 +105,7 @@ public class AkkaStartSystem {
                     "\t 'q' to exit\n" +
                     "\t 'cs node_name' so that `node_name` enters critical section\n" +
                     "\t 'csall' so ALL nodes enter into the critical section\n" +
+                    "\t 'st node_name' to make `node_name` print its internal state\n" +
                     "\t 'crash node_name' so that `node_name` simulates a crash\n\n" +
                     "Note that multiple inputs can be entered at once by separating them with ; . For example:\n" +
                     "\t cs node_1; cs node_2; crash node_5\n" +
@@ -136,19 +135,14 @@ public class AkkaStartSystem {
 
                     if (u_input.equals("h")) {
                         System.out.println(interface_description);
+
                     } else if (u_input.equals("q")) {
                         return; // exit
+
                     } else if (u_input.startsWith("cs ")) {
                         system.actorSelection(
                                 "akka://DMX/user/" + u_input.split(" ")[1])
-                                .tell(
-                                        new NodeAct.UEnterCS(),
-                                        ActorRef.noSender());
-                    } else if (u_input.startsWith("crash ")) {
-                        system.actorSelection(
-                                "akka://DMX/user/" + u_input.split(" ")[1])
-                                .tell(
-                                        new NodeAct.USimulateCrash(),
+                                .tell(new NodeAct.UEnterCS(),
                                         ActorRef.noSender());
 
                     } else if (u_input.equals("csall")) {
@@ -157,8 +151,23 @@ public class AkkaStartSystem {
                         )) {
                             nd.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
                         }
+
+                    } else if (u_input.startsWith("st ")) {
+                        system.actorSelection(
+                                "akka://DMX/user/" + u_input.split(" ")[1])
+                                .tell(new NodeAct.InvokePrintInternalState(),
+                                        ActorRef.noSender());
+
+
+                    } else if (u_input.startsWith("crash ")) {
+                        system.actorSelection(
+                                "akka://DMX/user/" + u_input.split(" ")[1])
+                                .tell(new NodeAct.USimulateCrash(),
+                                        ActorRef.noSender());
+
                     } else {
-                        System.out.println("Input not recognized. Enter 'h' for help");
+                        System.out.println("Input '" + u_input + "' not recognized. Enter 'h' for help");
+
                     }
                 }
 

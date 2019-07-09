@@ -1,12 +1,10 @@
 package com.tmds.project;
 
-import akka.actor.AbstractActor;
 import akka.actor.AbstractActorWithStash;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import akka.japi.Pair;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -149,6 +147,12 @@ public class NodeAct extends AbstractActorWithStash {
     static public class UEnterCS {
     }
 
+    /**
+     * Message sent to a node to make it print it's internal state to the terminal
+     * @return
+     */
+    static public class InvokePrintInternalState {
+    }
 
     // ----------------------------------------------------
     // mapping between message classes and methods for handling
@@ -173,6 +177,9 @@ public class NodeAct extends AbstractActorWithStash {
 
                 .match(USimulateCrash.class, this::usimulateCrash)
                 .match(UEnterCS.class, this::uenterCS)
+
+                .match(InvokePrintInternalState.class, this::printInternalState)
+
                 .build();
     }
 
@@ -224,6 +231,8 @@ public class NodeAct extends AbstractActorWithStash {
 
         if (!this.request_q.contains(requester)) {
             this.request_q.add(requester);
+        } else {
+            log.info("Already have a token request from {}. Ignoring this one", requester.path().name());
         }
 
         // ask for the token if needed
@@ -233,11 +242,12 @@ public class NodeAct extends AbstractActorWithStash {
 
             this.asked = true;
             this.holder.tell(new RequestToken(), getSelf());
-
         }
 
         // if we have the token and we're not using it then send it over
-        if (this.holder.equals(getSelf()) && !this.using) {
+        if (this.holder.equals(getSelf()) &&
+                !this.using &&
+                !this.asked) { // asked is true until we send the token
             getSelf().tell(new InvokePriviledgeSend(), getSelf());
         }
 
@@ -245,6 +255,7 @@ public class NodeAct extends AbstractActorWithStash {
         // request_q then we can go ahead and use it
         if (this.holder.equals(getSelf())
                 && requester.equals(getSelf())
+                && !this.request_q.isEmpty()
                 && this.request_q.getFirst().equals(getSelf())) {
             handleTokenReceive(new SendToken());
         }
@@ -260,7 +271,8 @@ public class NodeAct extends AbstractActorWithStash {
         this.holder = getSelf(); // since we now own the token
 
         // if current actor needs it then use it. Else send it over
-        if (this.request_q.getFirst().equals(getSelf())) {
+        if (!this.request_q.isEmpty() &&
+                this.request_q.getFirst().equals(getSelf())) {
             this.request_q.pop();
             this.using = true;
 
@@ -336,11 +348,6 @@ public class NodeAct extends AbstractActorWithStash {
         log.info("Just exited critical section");
 
         getSelf().tell(new InvokePriviledgeSend(), getSelf());
-    }
-
-    private void uenterCS(UEnterCS msg) {
-        log.info("User requested this node to enter the critical section");
-        getSelf().tell(new RequestToken(), getSelf());
     }
 
     /**
@@ -430,13 +437,9 @@ public class NodeAct extends AbstractActorWithStash {
         this.receivedAdvises.clear();
 
         this.is_recovering = false;
-        log.info("Recovery process finished! State after recovery:\n" +
-                        "\tHolder: {}\n" +
-                        "\tAsked: {}\n" +
-                        "\tSize request_q: {}",
-                this.holder.path().name(),
-                this.asked,
-                this.request_q.size());
+
+        log.info("Recovery finished!");
+        this.printInternalState(new InvokePrintInternalState());
 
 
         // TODO: check if the following is ok. It is not mentioned in the paper
@@ -447,22 +450,22 @@ public class NodeAct extends AbstractActorWithStash {
 
         // if the request_q size is larger than one then check if we need to
         // send the privilege or we need to ask for it
-        if (this.request_q.size() > 0) {
-
-            if (this.holder.equals(getSelf())) {
-                log.info("!! Resending privilege to {}", this.request_q.peek().path().name());
-
-                // if we're holder of the token then send token
-                getSelf().tell(new InvokePriviledgeSend(), this.request_q.peek());
-
-            } else if (!this.asked) {
-                log.info("!! Asking once again for token on behalf of {}", this.request_q.peek().path().name());
-
-                // else if someone asked us for the token but we haven't asked on their
-                // behalf then we do so
-                getSelf().tell(new RequestToken(), this.request_q.peek());
-            }
-        }
+//        if (!this.request_q.isEmpty()) {
+//
+//            if (this.holder.equals(getSelf())) {
+//                log.info("!! Resending privilege to {}", this.request_q.peek().path().name());
+//
+//                // if we're holder of the token then send token
+//                getSelf().tell(new InvokePriviledgeSend(), this.request_q.peek());
+//
+//            } else if (!this.asked) {
+//                log.info("!! Asking once again for token on behalf of {}", this.request_q.peek().path().name());
+//
+//                // else if someone asked us for the token but we haven't asked on their
+//                // behalf then we do so
+//                getSelf().tell(new RequestToken(), this.request_q.peek());
+//            }
+//        }
 
         // unstash all messages. These will be added to the head of the current message queue
         // so that they're processed in the same order they came in
@@ -480,7 +483,7 @@ public class NodeAct extends AbstractActorWithStash {
         // as per project assumptions, we can't crash while in the critical section
         // so if we're in CS (this.using) then just resquedule this message
         if (this.using) {
-            getSelf().tell(msg, getSelf());
+            log.info("Tried to crash but currently in CS.");
         }
 
         this.is_recovering = true;
@@ -503,10 +506,37 @@ public class NodeAct extends AbstractActorWithStash {
 
     }
 
+    private void uenterCS(UEnterCS msg) {
+        log.info("User requested this node to enter the critical section");
+        getSelf().tell(new RequestToken(), getSelf());
+    }
+
     private void usimulateCrash(USimulateCrash msg) {
         // remove local state and then:
         getSelf().tell(new InitializeRecovery(), getSelf());
     }
 
+    /**
+     * Utility method to print the internal state of a node to the terminal
+     * @param msg
+     */
+    public void printInternalState(InvokePrintInternalState msg) {
+        String request_q_nodes_names = "[ ";
+
+        for (ActorRef ract : this.request_q) {
+            request_q_nodes_names += ract.path().name() + " ";
+        }
+        request_q_nodes_names += "]";
+
+        log.info("Printing internal state:\n" +
+                        "\tHolder: {}\n" +
+                        "\tAsked: {}\n" +
+                        "\tSize request_q: {}\n" +
+                        "\trequest_q nodes: {}",
+                this.holder.path().name(),
+                this.asked,
+                this.request_q.size(),
+                request_q_nodes_names);
+    }
 
 }
