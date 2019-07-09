@@ -435,6 +435,20 @@ public class NodeAct extends AbstractActorWithStash {
         unstashAll();
 
         this.is_recovering = false;
+        log.info("Recovery process finished! State after recovery:\n" +
+                        "\tHolder: {}\n" +
+                        "\tAsked: {}\n" +
+                        "\tSize request_q: {}",
+                this.holder.path().name(),
+                this.asked,
+                this.request_q.size());
+
+        // TODO: Should we call make/request or assign/priviledge here? to ensure that the
+        // priviledge gets passed on? Maybe yes
+
+        // if we're the holder then call assign priviledge
+        // if request_q is not empty and we haven't asked then ask
+
     }
 
     /**
