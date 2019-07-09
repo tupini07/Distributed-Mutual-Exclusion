@@ -1,6 +1,7 @@
 package com.tmds.project;
 
 import akka.actor.AbstractActor;
+import akka.actor.AbstractActorWithStash;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-public class NodeAct extends AbstractActor {
+public class NodeAct extends AbstractActorWithStash {
 
     private LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
@@ -28,7 +29,6 @@ public class NodeAct extends AbstractActor {
     // specific for the recovery part
     private boolean is_recovering; // tells if the current node is in recovery mode or not
     private HashMap<ActorRef, Advise> receivedAdvises; // to know which neighbors have sent an Advise message and what this message was
-    private LinkedList<Pair<ActorRef, Object>> queuedMessages; // to hold messages which cannot be processed during recovery (MAKE_REQUEST and ASSIGN_PRIVILEGE)
 
     public NodeAct(ActorRef resource_actor) {
         this.resource_actor = resource_actor;
@@ -39,7 +39,6 @@ public class NodeAct extends AbstractActor {
 
         this.is_recovering = false;
         this.receivedAdvises = new HashMap<>();
-        this.queuedMessages = new LinkedList<>();
     }
 
 
@@ -216,7 +215,7 @@ public class NodeAct extends AbstractActor {
         // if we're recovering then we delay the evaluation of the RequestToken message
         // until the recovering process is complete
         if (this.is_recovering) {
-            this.queuedMessages.add(new Pair<>(getSender(), msg));
+            stash(); // add current message to stash
             return;
         }
 
@@ -283,7 +282,7 @@ public class NodeAct extends AbstractActor {
         // if we're recovering then we don't send privilege.
         // We delay until the recovering is complete.
         if (this.is_recovering) {
-            this.queuedMessages.add(new Pair<>(getSender(), msg));
+            stash(); // add current message to stash
             return;
         }
 
@@ -430,22 +429,12 @@ public class NodeAct extends AbstractActor {
         // after recieving advise from all neighbors
         this.receivedAdvises.clear();
 
-        // proceed to resend al queued messages
-
-        // TODO: this won't work. messages currently in the queue will probably be
-        // newer than this.queuedMessages and should not execute before them.
-        // an idea would be to rotate the list of messages, shift it until the processed
-        // message is the oldest one. Maybe add a "BaseMessage" which includes a timestamp and use
-        // an instance variable to track which was the oldest message (timestamp should be monotonically
-        // increasing until it decreases [because of FIFO that should be the oldest message])
-
-
-        for (Pair<ActorRef, Object> mQueue : this.queuedMessages) {
-            getSelf().tell(mQueue.second(), mQueue.first());
-        }
+        // unstash all messages. These will be added to the head of the current message queue
+        // so that they're processed in the same order they came in
+        // https://doc.akka.io/docs/akka/current/actors.html#stash
+        unstashAll();
 
         this.is_recovering = false;
-        this.queuedMessages.clear();
     }
 
     /**
@@ -473,7 +462,6 @@ public class NodeAct extends AbstractActor {
 
         // setup datastructures for recovery procedure
         this.receivedAdvises.clear();
-        this.queuedMessages.clear();
 
         // tell all neighbors that we crashed
         for (ActorRef neighbor : this.neighbors) {
