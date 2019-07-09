@@ -426,13 +426,8 @@ public class NodeAct extends AbstractActorWithStash {
             this.holder = getSelf();
         }
 
-        // after recieving advise from all neighbors
+        // after receiving advise from all neighbors
         this.receivedAdvises.clear();
-
-        // unstash all messages. These will be added to the head of the current message queue
-        // so that they're processed in the same order they came in
-        // https://doc.akka.io/docs/akka/current/actors.html#stash
-        unstashAll();
 
         this.is_recovering = false;
         log.info("Recovery process finished! State after recovery:\n" +
@@ -443,12 +438,36 @@ public class NodeAct extends AbstractActorWithStash {
                 this.asked,
                 this.request_q.size());
 
-        // TODO: Should we call make/request or assign/priviledge here? to ensure that the
-        // priviledge gets passed on? Maybe yes
 
-        // if we're the holder then call assign priviledge
-        // if request_q is not empty and we haven't asked then ask
+        // TODO: check if the following is ok. It is not mentioned in the paper
+        // I really don't think so. These messages would get appended to the message queue
 
+        // AND, we don't fail while processing a message so that really the following conditions
+        // would never be true
+
+        // if the request_q size is larger than one then check if we need to
+        // send the privilege or we need to ask for it
+        if (this.request_q.size() > 0) {
+
+            if (this.holder.equals(getSelf())) {
+                log.info("!! Resending privilege to {}", this.request_q.peek().path().name());
+
+                // if we're holder of the token then send token
+                getSelf().tell(new InvokePriviledgeSend(), this.request_q.peek());
+
+            } else if (!this.asked) {
+                log.info("!! Asking once again for token on behalf of {}", this.request_q.peek().path().name());
+
+                // else if someone asked us for the token but we haven't asked on their
+                // behalf then we do so
+                getSelf().tell(new RequestToken(), this.request_q.peek());
+            }
+        }
+
+        // unstash all messages. These will be added to the head of the current message queue
+        // so that they're processed in the same order they came in
+        // https://doc.akka.io/docs/akka/current/actors.html#stash
+        unstashAll();
     }
 
     /**
