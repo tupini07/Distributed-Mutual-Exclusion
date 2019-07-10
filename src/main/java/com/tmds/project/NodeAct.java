@@ -491,7 +491,7 @@ public class NodeAct extends AbstractActorWithStash {
         // as per project assumptions, we can't crash while in the critical section
         // so if we're in CS (this.using) then just resquedule this message
         if (this.using) {
-            log.info("Tried to crash but currently in CS.");
+            log.info("Tried to crash but currently in CS. Ignoring");
         }
 
         this.is_recovering = true;
