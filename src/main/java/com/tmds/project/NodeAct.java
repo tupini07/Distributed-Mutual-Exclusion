@@ -466,6 +466,11 @@ public class NodeAct extends AbstractActorWithStash {
         // so if we're in CS (this.using) then just resquedule this message
         if (this.using) {
             log.info("Tried to crash but currently in CS. Ignoring");
+            return;
+        }
+        if (this.is_recovering) {
+            log.info("Tried to crash while already in recovery. Ignoring");
+            return;
         }
 
         this.is_recovering = true;
