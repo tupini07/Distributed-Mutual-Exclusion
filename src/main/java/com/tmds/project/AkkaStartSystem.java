@@ -120,7 +120,7 @@ public class AkkaStartSystem {
                 inpt = in.nextLine();
 
                 if (inpt.contains(";")) {
-                    parsed_inputs = inpt.split(";");
+                    parsed_inputs = inpt.split("#")[0].split(";");
                 } else {
                     parsed_inputs = new String[1];
                     parsed_inputs[0] = inpt;
