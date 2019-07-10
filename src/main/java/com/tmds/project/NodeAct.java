@@ -519,12 +519,13 @@ public class NodeAct extends AbstractActorWithStash {
         log.info("Printing internal state:\n" +
                         "\tHolder: {}\n" +
                         "\tAsked: {}\n" +
+                        "\tRecovering: {}\n" +
                         "\tSize request_q: {}\n" +
-                        "\trequest_q nodes: {}",
-                this.holder.path().name(),
+                        "\trequest_q nodes: " + request_q_nodes_names,
+                this.holder != null ? this.holder.path().name() : "null",
                 this.asked,
-                this.request_q.size(),
-                request_q_nodes_names);
+                this.is_recovering,
+                this.request_q.size());
     }
 
 }
