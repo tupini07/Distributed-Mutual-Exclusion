@@ -42,7 +42,7 @@ public class ResourceActor extends AbstractActor {
         log.info("Node '{}' is currently accessing the resource", resource_user.path().name());
 
         getContext().getSystem().scheduler().scheduleOnce(
-                Duration.ofMillis(5000),
+                Duration.ofMillis(4000),
                 resource_user,
                 new NodeAct.ExitCriticalSection(),
                 getContext().getSystem().dispatcher(),
