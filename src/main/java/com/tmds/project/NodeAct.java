@@ -194,7 +194,7 @@ public class NodeAct extends AbstractActorWithStash {
             return;
         }
 
-        log.info("Initializing node: {}", getSelf().path().name());
+        log.info("SM: Initializing node: {}", getSelf().path().name());
 
         if (msg.is_first) {
             this.holder = getSelf();
@@ -242,7 +242,7 @@ public class NodeAct extends AbstractActorWithStash {
                 !this.asked) {
 
             this.asked = true;
-            log.info("Asking '{}' for token on behalf of '{}'",
+            log.info("SM: Asking '{}' for token on behalf of '{}'",
                     this.holder.path().name(),
                     requester.path().name());
             this.holder.tell(new RequestToken(), getSelf());
@@ -311,7 +311,7 @@ public class NodeAct extends AbstractActorWithStash {
             this.holder = this.request_q.pop();
             this.asked = false;
 
-            log.info("Sending privilege to node: {}", this.holder.path().name());
+            log.info("SM: Sending privilege to node: {}", this.holder.path().name());
             this.holder.tell(new SendToken(), getSelf());
 
         }
@@ -324,7 +324,7 @@ public class NodeAct extends AbstractActorWithStash {
         if (!this.request_q.isEmpty() &&
                 !this.asked &&
                 !this.holder.equals(getSelf())) {
-            log.info("We still have nodes in our request_q, so asking '{}' to return the token", this.holder.path().name());
+            log.info("SM: We still have nodes in our request_q, so asking '{}' to return the token", this.holder.path().name());
             this.holder.tell(new RequestToken(), getSelf());
         }
 
@@ -338,7 +338,7 @@ public class NodeAct extends AbstractActorWithStash {
     private void handleEnterCS(EnterCriticalSection msg) {
         this.using = true;
 
-        log.info("About to enter critical section");
+        log.info("SM: About to enter critical section. Sending access message");
 
         resource_actor.tell(new ResourceActor.AccessResource(), getSelf());
     }
@@ -366,7 +366,7 @@ public class NodeAct extends AbstractActorWithStash {
      * @param msg
      */
     private void handleRestart(Restart msg) {
-        log.info("Recieved a restart message from node {}. Sending an advise", getSender().path().name());
+        log.info("SM: Received a restart message from node {}. Sending an advise", getSender().path().name());
 
         getSender().tell(
                 new Advise(this.holder,
@@ -488,6 +488,7 @@ public class NodeAct extends AbstractActorWithStash {
 
         // tell all neighbors that we crashed
         for (ActorRef neighbor : this.neighbors) {
+            log.info("SM: Sending restart message to neighbor {}", neighbor.path().name());
             neighbor.tell(new Restart(), getSelf());
         }
 
@@ -499,7 +500,7 @@ public class NodeAct extends AbstractActorWithStash {
     }
 
     private void usimulateCrash(USimulateCrash msg) {
-        // remove local state and then:
+        log.info("User requested for this node to crash");
         getSelf().tell(new InitializeRecovery(), getSelf());
     }
 
