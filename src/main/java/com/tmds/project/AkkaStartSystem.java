@@ -87,14 +87,14 @@ public class AkkaStartSystem {
 
 
             // Ensure that the tree has been built correctly
-            Thread.sleep(2000);
+            Thread.sleep(1000);
 
             // -----------------------------------------------------
             // choose a random node as the initial possessor of the token
             n4.tell(new NodeAct.Initialize(true), ActorRef.noSender());
 
             // Ensure nodes have been initialized correctly
-            Thread.sleep(2000);
+            Thread.sleep(1000);
 
             // -----------------------------------------------------
             // Small interface to interact with program
