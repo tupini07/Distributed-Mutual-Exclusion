@@ -92,8 +92,6 @@
 
 * cs node_1; cs node_2; cs node_3; st node_4; crash node_4; cs node_4; cs node_10; cs node_6; st node_4; crash node_4; cs node_9; cs node_10;
 
-
-
     ------------------------------------------
     cs node_1; cs node_2; cs node_3; st node_4; crash node_4; cs node_4; cs node_10; cs node_6; st node_4; crash node_4; cs node_9; cs node_10;
 
@@ -216,3 +214,51 @@
     [INFO] [07/10/2019 12:57:49.542] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_10] About to enter critical section
     [INFO] [07/10/2019 12:57:49.543] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/Bathroom] Node 'node_10' is currently accessing the resource
     [INFO] [07/10/2019 12:57:53.560] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_10] Just exited critical section
+
+
+* measuring the number of messages needed to enter CS
+
+    First take the token to one extreme of the network, then send it over to the next extreme (from a leaf node to a leaf node on another subtree)
+
+    ------------------------------------------
+    cs node_5
+    [INFO] [07/10/2019 13:30:42.183] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_5] User requested this node to enter the critical section
+    [INFO] [07/10/2019 13:30:42.183] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_5] Received token request from node node_5
+    [INFO] [07/10/2019 13:30:42.183] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_5] SM: Asking 'node_2' for token on behalf of 'node_5'
+    [INFO] [07/10/2019 13:30:42.183] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_2] Received token request from node node_5
+    [INFO] [07/10/2019 13:30:42.183] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_2] SM: Asking 'node_1' for token on behalf of 'node_5'
+    [INFO] [07/10/2019 13:30:42.183] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] Received token request from node node_2
+    [INFO] [07/10/2019 13:30:42.183] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] SM: Asking 'node_4' for token on behalf of 'node_2'
+    [INFO] [07/10/2019 13:30:42.184] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_4] Received token request from node node_1
+    [INFO] [07/10/2019 13:30:42.184] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_4] SM: Sending privilege to node: node_1
+    [INFO] [07/10/2019 13:30:42.184] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] Received the token from node node_4
+    [INFO] [07/10/2019 13:30:42.184] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] SM: Sending privilege to node: node_2
+    [INFO] [07/10/2019 13:30:42.184] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_2] Received the token from node node_1
+    [INFO] [07/10/2019 13:30:42.184] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_2] SM: Sending privilege to node: node_5
+    [INFO] [07/10/2019 13:30:42.185] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_5] Received the token from node node_2
+    [INFO] [07/10/2019 13:30:42.185] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_5] SM: About to enter critical section. Sending access message
+    [INFO] [07/10/2019 13:30:42.185] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/Bathroom] Node 'node_5' is currently accessing the resource
+    [INFO] [07/10/2019 13:30:46.207] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_5] Just exited critical section
+    cs node_10
+    [INFO] [07/10/2019 13:30:55.177] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_10] User requested this node to enter the critical section
+    [INFO] [07/10/2019 13:30:55.178] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_10] Received token request from node node_10  <--- Note that it takes 2(5 - 1) messages to get into CS. As stated in the paper
+    [INFO] [07/10/2019 13:30:55.178] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_10] SM: Asking 'node_4' for token on behalf of 'node_10'
+    [INFO] [07/10/2019 13:30:55.178] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] Received token request from node node_10
+    [INFO] [07/10/2019 13:30:55.178] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] SM: Asking 'node_1' for token on behalf of 'node_10'
+    [INFO] [07/10/2019 13:30:55.179] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] Received token request from node node_4
+    [INFO] [07/10/2019 13:30:55.179] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] SM: Asking 'node_2' for token on behalf of 'node_4'
+    [INFO] [07/10/2019 13:30:55.180] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_2] Received token request from node node_1
+    [INFO] [07/10/2019 13:30:55.180] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_2] SM: Asking 'node_5' for token on behalf of 'node_1'
+    [INFO] [07/10/2019 13:30:55.180] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_5] Received token request from node node_2
+    [INFO] [07/10/2019 13:30:55.181] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_5] SM: Sending privilege to node: node_2
+    [INFO] [07/10/2019 13:30:55.181] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_2] Received the token from node node_5
+    [INFO] [07/10/2019 13:30:55.181] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_2] SM: Sending privilege to node: node_1
+    [INFO] [07/10/2019 13:30:55.182] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] Received the token from node node_2
+    [INFO] [07/10/2019 13:30:55.182] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] SM: Sending privilege to node: node_4
+    [INFO] [07/10/2019 13:30:55.182] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] Received the token from node node_1
+    [INFO] [07/10/2019 13:30:55.183] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] SM: Sending privilege to node: node_10
+    [INFO] [07/10/2019 13:30:55.183] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_10] Received the token from node node_4
+    [INFO] [07/10/2019 13:30:55.183] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_10] SM: About to enter critical section. Sending access message
+    [INFO] [07/10/2019 13:30:55.183] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/Bathroom] Node 'node_10' is currently accessing the resource
+    [INFO] [07/10/2019 13:30:59.204] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_10] Just exited critical section
+
