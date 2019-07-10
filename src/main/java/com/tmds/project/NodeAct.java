@@ -449,32 +449,6 @@ public class NodeAct extends AbstractActorWithStash {
         log.info("Recovery finished!");
         this.printInternalState(new InvokePrintInternalState());
 
-
-        // TODO: check if the following is ok. It is not mentioned in the paper
-        // I really don't think so. These messages would get appended to the message queue
-
-        // AND, we don't fail while processing a message so that really the following conditions
-        // would never be true
-
-        // if the request_q size is larger than one then check if we need to
-        // send the privilege or we need to ask for it
-//        if (!this.request_q.isEmpty()) {
-//
-//            if (this.holder.equals(getSelf())) {
-//                log.info("!! Resending privilege to {}", this.request_q.getFirst().path().name());
-//
-//                // if we're holder of the token then send token
-//                getSelf().tell(new InvokePriviledgeSend(), this.request_q.getFirst());
-//
-//            } else if (!this.asked) {
-//                log.info("!! Asking once again for token on behalf of {}", this.request_q.getFirst().path().name());
-//
-//                // else if someone asked us for the token but we haven't asked on their
-//                // behalf then we do so
-//                getSelf().tell(new RequestToken(), this.request_q.getFirst());
-//            }
-//        }
-
         // unstash all messages. These will be added to the head of the current message queue
         // so that they're processed in the same order they came in
         // https://doc.akka.io/docs/akka/current/actors.html#stash
