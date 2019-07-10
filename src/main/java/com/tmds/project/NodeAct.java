@@ -250,8 +250,7 @@ public class NodeAct extends AbstractActorWithStash {
 
         // if we have the token and we're not using it then send it over
         if (this.holder.equals(getSelf()) &&
-                !this.using &&
-                !this.asked) { // asked is true until we send the token
+                !this.using) {
             getSelf().tell(new InvokePriviledgeSend(), getSelf());
         }
 
