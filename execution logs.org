@@ -90,3 +90,129 @@
     [INFO] [07/10/2019 11:49:40.295] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/Bathroom] Node 'node_10' is currently accessing the resource
     [INFO] [07/10/2019 11:49:44.313] [DMX-akka.actor.default-dispatcher-10] [akka://DMX/user/node_10] Just exited critical section
 
+* cs node_1; cs node_2; cs node_3; st node_4; crash node_4; cs node_4; cs node_10; cs node_6; st node_4; crash node_4; cs node_9; cs node_10;
+
+
+
+    ------------------------------------------
+    cs node_1; cs node_2; cs node_3; st node_4; crash node_4; cs node_4; cs node_10; cs node_6; st node_4; crash node_4; cs node_9; cs node_10;
+
+    [INFO] [07/10/2019 12:57:29.438] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_1] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-4] [akka://DMX/user/node_2] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_1] Received token request from node node_1
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-4] [akka://DMX/user/node_2] Received token request from node node_2
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_1] Asking 'node_4' for token on behalf of 'node_1'
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-4] [akka://DMX/user/node_2] Asking 'node_1' for token on behalf of 'node_2'
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_3] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_1] Received token request from node node_2
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_3] Received token request from node node_3
+    [INFO] [07/10/2019 12:57:29.439] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] Received token request from node node_1
+    [INFO] [07/10/2019 12:57:29.440] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_3] Asking 'node_1' for token on behalf of 'node_3'
+    [INFO] [07/10/2019 12:57:29.440] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_1] Received token request from node node_3
+    [INFO] [07/10/2019 12:57:29.441] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] Printing internal state:
+        Holder: node_4
+        Asked: false
+        Size request_q: 1
+        request_q nodes: [ node_1 ]
+    [INFO] [07/10/2019 12:57:29.441] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] Sending privilege to node: node_1
+    [INFO] [07/10/2019 12:57:29.441] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_10] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_1] Received the token from node node_4
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_10] Received token request from node node_10
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_4] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_10] Asking 'node_4' for token on behalf of 'node_10'
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-4] [akka://DMX/user/node_6] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_1] About to enter critical section
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-4] [akka://DMX/user/node_6] Received token request from node node_6
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Node node_4 crashed! Initializing recovery procedure
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-4] [akka://DMX/user/node_6] Asking 'node_2' for token on behalf of 'node_6'
+    [INFO] [07/10/2019 12:57:29.442] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/Bathroom] Node 'node_1' is currently accessing the resource
+    [INFO] [07/10/2019 12:57:29.443] [DMX-akka.actor.default-dispatcher-11] [akka://DMX/user/node_2] Received token request from node node_6
+    [INFO] [07/10/2019 12:57:29.443] [DMX-akka.actor.default-dispatcher-4] [akka://DMX/user/node_1] Recieved a restart message from node node_4. Sending an advise
+    [INFO] [07/10/2019 12:57:29.443] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_9] Recieved a restart message from node node_4. Sending an advise
+    [INFO] [07/10/2019 12:57:29.443] [DMX-akka.actor.default-dispatcher-9] [akka://DMX/user/node_10] Recieved a restart message from node node_4. Sending an advise
+    [INFO] [07/10/2019 12:57:29.443] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_9] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.444] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_9] Received token request from node node_9
+    [INFO] [07/10/2019 12:57:29.444] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_9] Asking 'node_4' for token on behalf of 'node_9'
+    [INFO] [07/10/2019 12:57:29.444] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_10] User requested this node to enter the critical section
+    [INFO] [07/10/2019 12:57:29.444] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Printing internal state:
+        Holder: null <--- null becase node_4 is currently in recovery
+        Asked: false
+        Size request_q: 0
+        request_q nodes: [ ]
+    [INFO] [07/10/2019 12:57:29.444] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_10] Received token request from node node_10
+    [INFO] [07/10/2019 12:57:29.445] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_10] Already have a token request from node_10. Ignoring this one
+    [INFO] [07/10/2019 12:57:29.445] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Received advise message from node_9
+    [INFO] [07/10/2019 12:57:29.445] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Received advise message from node_1
+    [INFO] [07/10/2019 12:57:29.445] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Received advise message from node_10
+    [INFO] [07/10/2019 12:57:29.446] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Received advise from all nodes! Starting internal state reconstruction
+    [INFO] [07/10/2019 12:57:29.446] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Recovery finished!
+    [INFO] [07/10/2019 12:57:29.446] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Printing internal state:
+        Holder: node_1
+        Asked: false
+        Size request_q: 1
+        request_q nodes: [ node_10 ]
+    [INFO] [07/10/2019 12:57:29.448] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Received token request from node node_4 <--- here node_4 asks itself for the token (adds itself to request_q)
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Asking 'node_1' for token on behalf of 'node_4'
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Received token request from node node_10
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Already have a token request from node_10. Ignoring this one
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_1] Received token request from node node_4
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Received token request from node node_9
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-8] [akka://DMX/user/node_4] Node node_4 crashed! Initializing recovery procedure
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_1] Recieved a restart message from node node_4. Sending an advise
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_9] Recieved a restart message from node node_4. Sending an advise
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_10] Recieved a restart message from node node_4. Sending an advise
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Received advise message from node_1
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Received advise message from node_9
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Received advise message from node_10
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Received advise from all nodes! Starting internal state reconstruction
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Recovery finished!
+    [INFO] [07/10/2019 12:57:29.449] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Printing internal state:
+        Holder: node_1
+        Asked: true
+        Size request_q: 2
+        request_q nodes: [ node_9 node_10 ] <--- note that after recovering it is impossible for node_4 to know it was part of the request_q
+
+    [INFO] [07/10/2019 12:57:33.462] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] Just exited critical section
+    [INFO] [07/10/2019 12:57:33.463] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] Sending privilege to node: node_2
+    [INFO] [07/10/2019 12:57:33.463] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_1] We still have nodes in our request_q, so asking 'node_2' to return the token
+    [INFO] [07/10/2019 12:57:33.463] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_2] Received the token from node node_1
+    [INFO] [07/10/2019 12:57:33.464] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_2] Received token request from node node_1
+    [INFO] [07/10/2019 12:57:33.464] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_2] About to enter critical section
+    [INFO] [07/10/2019 12:57:33.464] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/Bathroom] Node 'node_2' is currently accessing the resource
+    [INFO] [07/10/2019 12:57:37.480] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_2] Just exited critical section
+    [INFO] [07/10/2019 12:57:37.480] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_2] Sending privilege to node: node_6
+    [INFO] [07/10/2019 12:57:37.480] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_2] We still have nodes in our request_q, so asking 'node_6' to return the token
+    [INFO] [07/10/2019 12:57:37.481] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_6] Received the token from node node_2
+    [INFO] [07/10/2019 12:57:37.481] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_6] Received token request from node node_2
+    [INFO] [07/10/2019 12:57:37.481] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_6] About to enter critical section
+    [INFO] [07/10/2019 12:57:37.482] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/Bathroom] Node 'node_6' is currently accessing the resource
+    [INFO] [07/10/2019 12:57:41.500] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_6] Just exited critical section
+    [INFO] [07/10/2019 12:57:41.500] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_6] Sending privilege to node: node_2
+    [INFO] [07/10/2019 12:57:41.501] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_2] Received the token from node node_6
+    [INFO] [07/10/2019 12:57:41.501] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_2] Sending privilege to node: node_1
+    [INFO] [07/10/2019 12:57:41.501] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_1] Received the token from node node_2
+    [INFO] [07/10/2019 12:57:41.502] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_1] Sending privilege to node: node_3
+    [INFO] [07/10/2019 12:57:41.502] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_1] We still have nodes in our request_q, so asking 'node_3' to return the token
+    [INFO] [07/10/2019 12:57:41.502] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_3] Received the token from node node_1
+    [INFO] [07/10/2019 12:57:41.502] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_3] Received token request from node node_1
+    [INFO] [07/10/2019 12:57:41.503] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_3] About to enter critical section
+    [INFO] [07/10/2019 12:57:41.503] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/Bathroom] Node 'node_3' is currently accessing the resource
+    [INFO] [07/10/2019 12:57:45.520] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_3] Just exited critical section
+    [INFO] [07/10/2019 12:57:45.521] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_3] Sending privilege to node: node_1
+    [INFO] [07/10/2019 12:57:45.521] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_1] Received the token from node node_3
+    [INFO] [07/10/2019 12:57:45.521] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_1] Sending privilege to node: node_4
+    [INFO] [07/10/2019 12:57:45.522] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Received the token from node node_1
+    [INFO] [07/10/2019 12:57:45.522] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] Sending privilege to node: node_9
+    [INFO] [07/10/2019 12:57:45.522] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_4] We still have nodes in our request_q, so asking 'node_9' to return the token
+    [INFO] [07/10/2019 12:57:45.523] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_9] Received the token from node node_4
+    [INFO] [07/10/2019 12:57:45.523] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_9] Received token request from node node_4
+    [INFO] [07/10/2019 12:57:45.523] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_9] About to enter critical section
+    [INFO] [07/10/2019 12:57:45.523] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/Bathroom] Node 'node_9' is currently accessing the resource
+    [INFO] [07/10/2019 12:57:49.540] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_9] Just exited critical section
+    [INFO] [07/10/2019 12:57:49.540] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_9] Sending privilege to node: node_4
+    [INFO] [07/10/2019 12:57:49.541] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_4] Received the token from node node_9
+    [INFO] [07/10/2019 12:57:49.541] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/node_4] Sending privilege to node: node_10
+    [INFO] [07/10/2019 12:57:49.542] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_10] Received the token from node node_4
+    [INFO] [07/10/2019 12:57:49.542] [DMX-akka.actor.default-dispatcher-12] [akka://DMX/user/node_10] About to enter critical section
+    [INFO] [07/10/2019 12:57:49.543] [DMX-akka.actor.default-dispatcher-7] [akka://DMX/user/Bathroom] Node 'node_10' is currently accessing the resource
+    [INFO] [07/10/2019 12:57:53.560] [DMX-akka.actor.default-dispatcher-6] [akka://DMX/user/node_10] Just exited critical section
