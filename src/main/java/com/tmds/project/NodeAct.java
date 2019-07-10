@@ -318,8 +318,13 @@ public class NodeAct extends AbstractActorWithStash {
 
         // If after sending the token we still have other requesters in our request_q
         // then we also send a RequestToken message to the new holder so that we will
-        // get back the token eventually
-        if (!this.request_q.isEmpty() && !this.asked) {
+        // get back the token eventually.
+        // if the holder is the current node then we don't want to re-request it since this would
+        // make as re-enter the CS.
+        if (!this.request_q.isEmpty() &&
+                !this.asked &&
+                !this.holder.equals(getSelf())) {
+            log.info("We still have nodes in our request_q, so asking '{}' to return the token", this.holder.path().name());
             this.holder.tell(new RequestToken(), getSelf());
         }
 
