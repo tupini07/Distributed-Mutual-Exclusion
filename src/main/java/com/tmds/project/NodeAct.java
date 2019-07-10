@@ -149,6 +149,7 @@ public class NodeAct extends AbstractActorWithStash {
 
     /**
      * Message sent to a node to make it print it's internal state to the terminal
+     *
      * @return
      */
     static public class InvokePrintInternalState {
@@ -236,11 +237,14 @@ public class NodeAct extends AbstractActorWithStash {
         }
 
         // ask for the token if needed
-        if (this.holder != getSelf() &&
+        if (!this.holder.equals(getSelf()) &&
                 !this.request_q.isEmpty() &&
                 !this.asked) {
 
             this.asked = true;
+            log.info("Asking '{}' for token on behalf of '{}'",
+                    this.holder.path().name(),
+                    requester.path().name());
             this.holder.tell(new RequestToken(), getSelf());
         }
 
@@ -453,17 +457,17 @@ public class NodeAct extends AbstractActorWithStash {
 //        if (!this.request_q.isEmpty()) {
 //
 //            if (this.holder.equals(getSelf())) {
-//                log.info("!! Resending privilege to {}", this.request_q.peek().path().name());
+//                log.info("!! Resending privilege to {}", this.request_q.getFirst().path().name());
 //
 //                // if we're holder of the token then send token
-//                getSelf().tell(new InvokePriviledgeSend(), this.request_q.peek());
+//                getSelf().tell(new InvokePriviledgeSend(), this.request_q.getFirst());
 //
 //            } else if (!this.asked) {
-//                log.info("!! Asking once again for token on behalf of {}", this.request_q.peek().path().name());
+//                log.info("!! Asking once again for token on behalf of {}", this.request_q.getFirst().path().name());
 //
 //                // else if someone asked us for the token but we haven't asked on their
 //                // behalf then we do so
-//                getSelf().tell(new RequestToken(), this.request_q.peek());
+//                getSelf().tell(new RequestToken(), this.request_q.getFirst());
 //            }
 //        }
 
@@ -518,6 +522,7 @@ public class NodeAct extends AbstractActorWithStash {
 
     /**
      * Utility method to print the internal state of a node to the terminal
+     *
      * @param msg
      */
     public void printInternalState(InvokePrintInternalState msg) {
