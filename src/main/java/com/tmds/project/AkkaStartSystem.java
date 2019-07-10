@@ -5,6 +5,7 @@ import akka.actor.ActorSystem;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 
 public class AkkaStartSystem {
@@ -89,9 +90,19 @@ public class AkkaStartSystem {
             // Ensure that the tree has been built correctly
             Thread.sleep(1000);
 
+            List<ActorRef> ALL_NODES = Arrays.asList(
+                    n1, n2, n3, n4, n5, n6, n7, n8, n9, n10
+            );
+
+
             // -----------------------------------------------------
             // choose a random node as the initial possessor of the token
-            n4.tell(new NodeAct.Initialize(true), ActorRef.noSender());
+            ALL_NODES.get(
+                    (int) (Math.random() * ALL_NODES.size())
+            ).tell(
+                    new NodeAct.Initialize(true),
+                    ActorRef.noSender()
+            );
 
             // Ensure nodes have been initialized correctly
             Thread.sleep(1000);
@@ -146,9 +157,7 @@ public class AkkaStartSystem {
                                         ActorRef.noSender());
 
                     } else if (u_input.equals("csall")) {
-                        for (ActorRef nd : Arrays.asList(
-                                n1, n2, n3, n4, n5, n6, n7, n8, n9, n10
-                        )) {
+                        for (ActorRef nd : ALL_NODES) {
                             nd.tell(new NodeAct.UEnterCS(), ActorRef.noSender());
                         }
 
