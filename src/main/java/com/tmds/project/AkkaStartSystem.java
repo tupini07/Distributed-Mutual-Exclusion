@@ -97,15 +97,20 @@ public class AkkaStartSystem {
 
             // -----------------------------------------------------
             // choose a random node as the initial possessor of the token
-            ALL_NODES.get(
+
+            ActorRef initial_token_holder = ALL_NODES.get(
                     (int) (Math.random() * ALL_NODES.size())
-            ).tell(
+            );
+
+            initial_token_holder.tell(
                     new NodeAct.Initialize(true),
                     ActorRef.noSender()
             );
 
             // Ensure nodes have been initialized correctly
             Thread.sleep(1000);
+
+            System.out.println("> The initial holder of the token is: " + initial_token_holder.path().name());
 
             // -----------------------------------------------------
             // Small interface to interact with program
