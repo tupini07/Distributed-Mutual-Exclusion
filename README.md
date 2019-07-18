@@ -15,7 +15,7 @@ The system is composed of three main components:
   here we set the up the nodes and the topology of the network. We also set up the resource actor and a small *command
   interface* with which the user can interact with the application.
   
-More details about each of these, and the messages they use can be seen in the [report](#)
+More details about each of these, and the messages they use can be seen in the [report](https://github.com/tupini07/Distributed-Mutual-Exclusion/blob/master/report.pdf)
   
   
 ## Running ##
